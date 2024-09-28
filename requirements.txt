@@ -1,0 +1,8 @@
+torch
+torchvision
+torchaudio
+pandas
+jupyterlab
+scikit-learn
+matplotlib
+pyro-ppl
