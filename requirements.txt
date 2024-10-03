@@ -2,7 +2,16 @@ torch
 torchvision
 torchaudio
 pandas
+numpy
 jupyterlab
 scikit-learn
 matplotlib
 pyro-ppl
+seaborn
+statsmodels
+xarray
+netCDF4
+h5netcdf
+dask
+Pydap
+python-dotenv

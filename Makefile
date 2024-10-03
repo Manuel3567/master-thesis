@@ -1,4 +1,4 @@
-.PHONY: all clean electricity data
+.PHONY: all clean electricity merra data
 
 # Makefile to download and unzip datasets
 
@@ -18,6 +18,10 @@ electricity:
 	@unzip -q $(DATA_DIR)/raw/electricityloaddiagrams20112014.zip -d $(DATA_DIR)
 	@echo "Unzipped successfully."
 
+
+merra:
+	@echo "Downloading Merra2 data from NASA. Make sure to have a .env file with a valid MERRA_TOKEN set."
+	@python -c "import analysis.downloads; analysis.downloads.download_merra('2017-01-01', '2024-09-01', output_dir='./data/raw/merra2')"
 # Clean up the zip file and data directory
 clean:
 	@echo "Cleaning up..."
