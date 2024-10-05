@@ -39,10 +39,48 @@ def load_entsoe(data_path: str = "../data"):
 
 
 
-def load_merra(data_path: str = "../data", longitude: float = 13.125, lattitude: float = 53.0):
+from pathlib import Path
+import xarray as xr
+import pandas as pd
+from datetime import datetime
+
+def load_merra(data_path: str = "../data", longitude: float = 13.125, lattitude: float = 53.0, 
+               start_date: str = None, end_date: str = None):
+    # Define path
     p = Path(f"{data_path}/raw/merra2")
+    
+    # List all files matching the pattern
     fs = list(p.glob(f"merra2_{longitude}_{lattitude}_*.nc"))
+    
+    # Convert start_date and end_date to datetime objects if provided
+    if start_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+    if end_date:
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+    
+    # Function to extract the date from filename
+    def extract_date(file_name):
+        date_str = file_name.stem.split('_')[3:6]  # Get the date part (YYYYMMDD)
+        date_str = "_".join(date_str)
+        return datetime.strptime(date_str, '%Y_%m_%d')
+    
+    # Filter files by date
+    if start_date or end_date:
+        fs = [f for f in fs if (not start_date or extract_date(f) >= start_date) and 
+                             (not end_date or extract_date(f) <= end_date)]
+    
+    # Load the dataset
     ds = xr.open_mfdataset(fs, engine='netcdf4')
     df = ds.to_dataframe()
+    
+    # Reset index and rename columns
     df = df.reset_index().set_index("time")
+    df = df.rename(columns={
+        'HLML': 'layer_height (m)',
+        'PS': 'pressure (Pa)',
+        'QLML': 'specific_humidity (1)',
+        'SPEEDLML': 'wind_speed (m/s)',
+        'TLML': 'air_temperature (K)',
+    })
+
     return df
