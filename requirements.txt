@@ -15,3 +15,8 @@ h5netcdf
 dask
 Pydap
 python-dotenv
+openpyxl
+pandas
+numpy
+scipy
+zipfile36

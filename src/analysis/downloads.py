@@ -3,6 +3,8 @@ import xarray as xr
 import requests
 from datetime import datetime, timedelta
 import warnings
+import zipfile
+from io import BytesIO
 warnings.filterwarnings("ignore")
 
 # Function to download MERRA data for a range of dates
@@ -43,8 +45,14 @@ def download_merra(start_date, end_date, token=None, longitude=13.125, lattitude
         day = f"{current_date.day:02d}"
 
         # Generate the URL based on the template
-        url = f"https://goldsmr4.gesdisc.eosdis.nasa.gov/opendap/hyrax/MERRA2/M2I1NXLFO.5.12.4/{year}/{month}/MERRA2_400.inst1_2d_lfo_Nx.{year}{month}{day}.nc4?HLML[0:1:23][{lattitude}][{longitude}],QLML[0:1:23][{lattitude}][{longitude}],SPEEDLML[0:1:23][{lattitude}][{longitude}],PS[0:1:23][{lattitude}][{longitude}],TLML[0:1:23][{lattitude}][{longitude}],lat[{lattitude}],lon[{longitude}],time[0:1:23]"
 
+        def generate_url(suffix = "400"):
+
+            url = f"https://goldsmr4.gesdisc.eosdis.nasa.gov/opendap/hyrax/MERRA2/M2I1NXLFO.5.12.4/{year}/{month}/MERRA2_{suffix}.inst1_2d_lfo_Nx.{year}{month}{day}.nc4?HLML[0:1:23][{lattitude}][{longitude}],QLML[0:1:23][{lattitude}][{longitude}],SPEEDLML[0:1:23][{lattitude}][{longitude}],PS[0:1:23][{lattitude}][{longitude}],TLML[0:1:23][{lattitude}][{longitude}],lat[{lattitude}],lon[{longitude}],time[0:1:23]"
+        
+            return url
+        
+        
         # Define the output file path
         output_file = f"{output_dir}/merra2_{longitude_coord}_{lattitude_coord}_{year}_{month}_{day}.nc"
         
@@ -52,11 +60,20 @@ def download_merra(start_date, end_date, token=None, longitude=13.125, lattitude
         if os.path.exists(output_file):
             print(f"File already exists, skipping download: {output_file}")
         else:
-            print(f"Downloading: {url} to {output_file}")
             try:
-                # Use PydapDataStore to open the dataset with authentication
-                store = xr.backends.PydapDataStore.open(url, session=session)
                 
+                try:
+                    url = generate_url()
+                    print(f"Downloading: {url} to {output_file}")
+                    # Use PydapDataStore to open the dataset with authentication
+                    store = xr.backends.PydapDataStore.open(url, session=session)
+                
+                except Exception as e:
+                    url = generate_url(suffix="401")
+                    print(f"Use 401 suffix instead, downloading: {url} to {output_file}")
+                    store = xr.backends.PydapDataStore.open(url, session=session)
+
+
                 # Create an xarray dataset from the opened store
                 ds = xr.open_dataset(store)
                 
@@ -70,3 +87,63 @@ def download_merra(start_date, end_date, token=None, longitude=13.125, lattitude
         
         # Increment the current_date by 1 day
         current_date += timedelta(days=1)
+    
+
+def download_zenodo(start_year: int, end_year: int, output_dir="../data/zenodo_turbine_data/raw/"):
+
+    # Loop through the range of years specified
+    for year in range(start_year, end_year + 1):
+        print(f"\nStarting download for the year {year}...")
+        
+        # Directory setup for the specific year
+        output_dir_year = os.path.join(output_dir, str(year))
+        os.makedirs(output_dir_year, exist_ok=True)
+
+        # Conditionally set turbine range and turbine codes
+        if year == 2016:
+            turbine_combinations = [("01-10", 3107), ("11-15", 3107)]
+        elif year == 2017:
+            turbine_combinations = [("01-10", 3114), ("11-15", 3115)]
+        elif year == 2018:
+            turbine_combinations = [("01-10", 3113), ("11-15", 3116)]
+        elif year == 2019:
+            turbine_combinations = [("01-10", 3112), ("11-15", 3117)]
+        elif year == 2020:
+            turbine_combinations = [("01-10", 3109), ("11-15", 3118)]
+        elif year == 2021:
+            turbine_combinations = [("01-10", 3108), ("11-15", 3108)]
+        else:
+            print(f"No data for the year {year}. Skipping...")
+            continue  # Skip years not in the list
+
+        # Loop through the turbine combinations for this year
+        for turbine_range, code in turbine_combinations:
+            # Construct the URL and expected file name
+            url = f"https://zenodo.org/records/5946808/files/Penmanshiel_SCADA_{year}_WT{turbine_range}_{code}.zip?download=1"
+            filename = f"Penmanshiel_SCADA_{year}_WT{turbine_range}_{code}.zip"
+            file_path = os.path.join(output_dir_year, filename)
+
+            # Check if the file already exists
+            if os.path.exists(file_path):
+                print(f"File already exists: {filename}. Skipping download.")
+                continue  # Skip to the next file if it exists
+
+            print(f"Attempting to download {filename}... : {url}")
+
+            # Download the file and check for successful response
+            try:
+                response = requests.get(url, stream=True)
+                if response.status_code == 200:
+                    # Extract the zip file content
+                    with zipfile.ZipFile(BytesIO(response.content)) as zip_file:
+                        zip_file.extractall(output_dir_year)
+                    print(f"Downloaded and extracted: {filename} to {output_dir_year}")
+                else:
+                    print(f"Failed to download {filename}: HTTP {response.status_code}")
+            except requests.exceptions.RequestException as e:
+                print(f"Failed to download {filename}: {e}")
+            except zipfile.BadZipFile:
+                print(f"Downloaded file is not a valid ZIP: {filename}")
+
+
+    
