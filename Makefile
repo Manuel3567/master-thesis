@@ -7,7 +7,7 @@ DATA_DIR = data
 
 # Default target
 all: data
-data: electricity
+data: merra electricity
 
 # Target to download the electricity data
 electricity:

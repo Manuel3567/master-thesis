@@ -1,0 +1,22 @@
+pandas
+numpy
+jupyterlab
+scikit-learn
+matplotlib
+pyro-ppl
+seaborn
+statsmodels
+xarray
+netCDF4
+h5netcdf
+dask
+Pydap
+python-dotenv
+openpyxl
+scipy
+zipfile36
+
+# Specify custom index URL for PyTorch packages
+torch==2.1.0+cu124 -i https://download.pytorch.org/whl/cu124
+torchvision==0.16.0+cu124 -i https://download.pytorch.org/whl/cu124
+torchaudio==2.1.0+cu124 -i https://download.pytorch.org/whl/cu124
