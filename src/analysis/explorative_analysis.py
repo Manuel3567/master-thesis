@@ -186,7 +186,12 @@ def explorative_analysis(dataframe):
 
 
 def check_problematic_power_ranges(dataframe):
-    right_range = dataframe[(dataframe['Power (kW)'] > -20) & (dataframe['Power (kW)'] < 2050)][['Power (kW)', 'Wind speed (m/s)']]
-    wrong_range = dataframe[~((dataframe['Power (kW)'] > -20) & (dataframe['Power (kW)'] < 2050))][['Power (kW)', 'Wind speed (m/s)']]
+
+    if get_power_columns(dataframe) != None:
+        return
     
-    return wrong_range
+    else:
+        right_range = dataframe[(dataframe['Power (kW)'] > -20) & (dataframe['Power (kW)'] < 2050)][['Power (kW)', 'Wind speed (m/s)']]
+        wrong_range = dataframe[~((dataframe['Power (kW)'] > -20) & (dataframe['Power (kW)'] < 2050))][['Power (kW)', 'Wind speed (m/s)']]
+        
+        return wrong_range
