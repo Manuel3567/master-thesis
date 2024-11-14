@@ -1,22 +1,34 @@
 # Datasets
 
+## Overview of datasets categorized by type
+
+Day-ahead Electricity Market (1)
+For the electricity market, all kinds of sources (wind, solar, gas) are aggregated.
+
+| Type of Dataset                 | Dataset                       | Time Resolution | Time Period                   |
+|---------------------------------|-------------------------------|-----------------|-------------------------------|
+| **Aggregated**                  | Power 50Hertz/entsoe          | 15m             | 2016 ▮▮▮▮▮▮▮▮▮ 2024          |
+|                                 | Historical Weather (2) Merra2 | 1h              | 2016 ▮▮▮▮▮▮▮▮▮ 2024          |
+|                                 | Forecasted wind (3) open-meteo | 15m            | (2021▯▮▮)▮▮▮▮▮▮2024          |
+| **Turbine**                     | Power zenodo                  | 10m             | (2016▯▯▮)-(2021▮▯)             |
+|                                 | Historical Weather zenodo     | 10m             | (2016 ▯▯▮)-(2021▮▯)            |
+|                                 | Forecasted wind (4)           | 15m             | (2021▮▯)                      |
+
+---
+**Notes:**
+- (2): Data at the geographic center of the 50Hertz wind parks.
+- (3): To be updated.
+- (4): More data to be researched.
+
 ## Overview of Datasets
 
 | **Data Category**               | **Description**                                                                                                             | **Time Period**          | **Time Resolution**               | **Additional Information**                                                                                                         |
 |---------------------------------|-----------------------------------------------------------------------------------------------------------------------------|---------------------------|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| **1. Aggregated Power Generation** | [Aggregated power generation of 50Hertz's seven onshore wind parks](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2024+00:00\|CET\|DAYTIMERANGE&dateTime.endDateTime=01.01.2024+00:00\|CET\|DAYTIMERANGE&area.values=CTY\|10Y1001A1001A83F!CTA\|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)#) | 2016 - 2024              | 15-minute intervals               | Suggested Enrichment: Add weather data, installation capacity ([2019 - 2023](https://www.50hertz.com/xspProxy/api/staticfiles/50hertz-client/images/medien/almanach_2023/240527_50hertz_br_almanac_2023_1920x1080_en.pdf), [2018](https://www.50hertz.com/xspProxy/api/staticfiles/50hertz-client/images/medien/almanach_2023/240527_50hertz_br_almanac_2023_1920x1080_en.pdf)) - 50Hertz's expansion.  |
-| **2. Historical Weather Data**   | [Weather data extracted at the geocentric mean of the 50Hertz wind parks](https://goldsmr4.gesdisc.eosdis.nasa.gov/opendap/MERRA2/M2I1NXLFO.5.12.4/contents.html)  | 1980 - 2024              | 1-hour intervals                  |                                                                                                                                    |
-| **3. Wind Turbine Data**         | [Individual power generation of a wind turbine (Penmanshiel UK)](https://zenodo.org/records/5946808#.YsWndezMJmo)         | Mid 2016 - Mid 2021      | 10-minute intervals (SCADA data)  | Separate data files per year (+ static data file); SCADA data includes power, weather, and other metrics. Status file records turbine events with start/end times.        |
+| **1. Aggregated Power Generation** | [50Hertz's seven onshore wind parks](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2024+00:00\|CET\|DAYTIMERANGE&dateTime.endDateTime=01.01.2024+00:00\|CET\|DAYTIMERANGE&area.values=CTY\|10Y1001A1001A83F!CTA\|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)#) | 2016 - 2024              | 15-minute intervals               | Suggested Enrichment: Add weather data, installation capacity ([2019 - 2023](https://www.50hertz.com/xspProxy/api/staticfiles/50hertz-client/images/medien/almanach_2023/240527_50hertz_br_almanac_2023_1920x1080_en.pdf), [2018](https://www.50hertz.com/xspProxy/api/staticfiles/50hertz-client/images/medien/almanach_2023/240527_50hertz_br_almanac_2023_1920x1080_en.pdf)) - 50Hertz's expansion.  |
+| **2. Historical Weather Data**   | [At the geocentric mean of  50Hertz wind parks](https://goldsmr4.gesdisc.eosdis.nasa.gov/opendap/MERRA2/M2I1NXLFO.5.12.4/contents.html)  | 1980 - 2024              | 1-hour intervals                  |                                                                                                                                    |
+| **3. Wind Turbine Data**         | [Power generation of a wind turbine (UK)](https://zenodo.org/records/5946808#.YsWndezMJmo)         | Mid 2016 - Mid 2021      | 10-minute intervals (SCADA data)  | Separate data files per year (+ static data file); SCADA (supervisory control and data acquisition data) includes power, weather, and other metrics. Status file records turbine events with start/end times.        |
 | **4. Weather Forecast**          | [Weather forecast extracted at the geocentric mean of 50Hertz wind parks](https://open-meteo.com/en/docs/historical-forecast-api#latitude=55.8829&longitude=-2.3056&start_date=2024-10-02&end_date=2024-10-02&minutely_15=temperature_2m,wind_speed_80m&hourly=&wind_speed_unit=ms)  | 22.03.2021 - Present      | 15-minute intervals               | Currently not at the exact geocentric mean.                                                                                        |
 
-## Overview of datasets categorized by type
-
-![alt text](images/Dataset_categorized_by_type.png "datasets categorized by type")
-
-(1): for the electricity market all kinds of sources (wind, solar, gas) are aggregated
-(2): at the geographic centre of the 50Hertz windparks
-(3): to be updated
-(4): more data to be researched
 
 
 
@@ -52,19 +64,48 @@
 - Data on turbine 09:
    - latitude: 55.904990
    - longitude: -2.291806
+- SCADA: SCADA data cover a set of environmental, operational, thermal and electrical measurements usually recorded for maintenance reasons (Effenberger, 2022).
+- Provider data: https://www.thewindpower.net/turbine_en_464_senvion_mm82-2050.php
 - Additional:
    -  Data on wind turbines in [Kelmarsh (UK)](https://zenodo.org/records/5841834)
-- Analysis: See notebook "004_zenodo.ipynb"
+- Analysis: See below
 
 
 
 ### 4. Weather Forecasts (any location)
 - [Dataset: Historical Forecast API](https://open-meteo.com/en/docs/historical-forecast-api#latitude=55.8829&longitude=-2.3056&)
+- This dataset is constructed by continuously assembling weather forecasts, concatenating the first hours of each model update. Initialized with actual measurements, it closely mirrors local measurements but provides global coverage. However, it only includes data from the past 2-5 years and lacks long-term consistency due to evolving weather models and better initialization data over time.
+- The weather data precisely aligns with the weather forecast API, created by continuously integrating weather forecast model data. Each update from the weather models' initial hours is compiled into a seamless time series. This extensive dataset is ideal for training machine learning models and combining them with forecast data to generate optimized predictions.
+- Weather models are initialized using data from weather stations, satellites, radar, airplanes, soundings, and buoys. With high update frequencies of 1, 3, or 6 hours, the resulting time series is nearly as accurate as direct measurements and offers global coverage. In regions like North America and Central Europe, the difference from local weather stations is minimal. However, for precise values such as precipitation, local measurements are preferable when available.
+- The Historical Forecast API archives comprehensive data, including atmospheric pressure levels, from all accessible weather forecast models. Depending on the model and public archive availability, data is available starting from 2021 or 2022.
+- The default Best Match option selects the most suitable high-resolution weather models for any global location, though users can also manually specify the weather model. Open-Meteo utilizes the following weather forecast models:
+- 15-minutely weather variables are only available in Central Europe and North America. Other regions use interpolated hourly data.
+   - The model for Central Europe is from the provider DWD Germany and the models are called "ICON". For 15-minute data ICON-D2 is used
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- "This dataset is constructed by continuously assembling weather forecasts, concatenating the first hours of each model update. Initialized with actual measurements, it closely mirrors local measurements but provides global coverage. However, it only includes data from the past 2-5 years and lacks long-term consistency due to evolving weather models and better initialization data over time. The default Best Match option selects the most suitable high-resolution weather models for any global location, though users can also manually specify the weather model. Open-Meteo utilizes the following (weather forecast models)[https://open-meteo.com/en/docs/historical-forecast-api#start_date=2024-10-27]
+
+
+
 - Selected parameters:
    - Manually:
       - Latitude: 53, Longitude: 13.125
       - Timezone: "Automatically detect time zone"
-      - Start Date: "2021-03.22", End Date: "2024-03-22"
+      - Start Date: "2021-03-23T00:00", End Date: "2024-03-22"
       - Hourly Weather Variables: blank
       - 15-Minutely Weather Variables:
          - Wind Speed (10m)
@@ -164,3 +205,48 @@ The functions to load the datasets can be found in the datasets.py file. The ind
 - TBD
 5. Other
 - load_electricity()
+
+
+
+# Analysis
+
+### Penmanshiel Turbine
+
+Data enrichment
+- aim is to ammend the data file with information about the operation status of the turbine
+- Step 1 creates a virtual status file with 10 minute intervals and 2 columns, "Status" and "Events"
+- The values of the Status column is given by the values of the Status column 4. of the status file: Stop is mapped to Stop and Informational, Warning is mapped to running
+- That is whenever the turbine was in stopped mode the Status of the corresponding interval is set to Stop
+- These time intervals will have to be neglected in the time intervals.
+- The "Events" column is a concatenation of 4 variables from the status file: "Status", "Message", "Service contract category" and "IEC category" separated by a dash
+- "Lost Production to Downtime and Curtailment Total (kWh)" is a useful variable v:
+    - v ranges from 0 to about 300
+    - v = 0 <=> most entries have Status = Running but there are 1289 entries with Status = "Stop"
+    - v != 0 <=> Status = Stop
+
+Analysis of all entries with status "Running": 
+- The 2016 dataset starts in the middle of 2016. In total there are 18,346 entries, roughly half a year * 24 * 6 entries per hour. 
+- The turbine was installed in the middle of June and data started to be collected from June 24th onwards
+- However the turbine was not active until end of August.
+- This explains the majority 7781 of the 9074 "Stop" entries where the turbine is not in productive operation.
+- There are 18346 entries with Status "Running". This is to investigate which of these should be kept. There exists 34 different values of the variable "Events" (combinations of the original columns: "Status", "Message", "Service contract category" and "IEC category")
+- One value of "Events" has the most entries 11,578 ("Informational - System OK - System OK (32) - Full Performance"). Such data entries will be kept in any case.
+- The second biggest event with 5,615 entries is "Warning - P output externally reduced - Warnings (27) - Partial Performance"
+- Other analyses like Capelletti 2024 use only the data file and do not merge with the status file. In their analysis they exclude all events where the variable v is non zero. However, closer inspection shows that also entries with v = 0 have Status Stop and should be excluded. On the other hand, where the status file indicates "Warning - P output externally reduced - Warnings (27) - Partial performance" should be included in the analysis because we consider the electric power that is generated by the turbine and not the electric power that is transmitted to the external grid.
+- **All other events are small in number and will be neglected because of messages that indicate non full operation e.g. "External Stop (low wind speed)",
+"Error brake resistor CHP", "SNTP error", "Parametrized P red."**
+
+Analysis of 1st "Events": Status "Running", event: "Informational - System OK - System OK (32) - Full Performance"
+- 2221 entries with negative power (kW)
+- Those (negative power entries) all have wind speeds less than 4.2 (m/s)
+- For wind speeds below 3 power is negative
+- For wind speeds between 3-4 power can be positive or negative
+- From wind speeds of 5 m/s onwards power is only positive
+- The data follows the theoretical power vs wind speed curve pretty well. There are deviations for example
+    - 2016-11-05 01.00 Wind Speed of 19.4 m/s 1742 kW, 10 minutes later wind speed 21.1 m/s 1741 kW
+    - At this wind speed one would expect a power of 2000 kW. Could be due to the change in wind direction of 347° to 355° but the nacelle position was not adjusted, remained at 347
+
+Analysis of 2nd "Events": "Warning - P output externally reduced - Warnings (27) - Partial performance"
+- 5615 entries
+- Difference to "Full Performance" is "Lost production" != 0 or "Production-based IEC B.2.3 != 1"
+- This seems to indicate that the power transferred to the grid is reduced but the power produced by the turbine is not affected
