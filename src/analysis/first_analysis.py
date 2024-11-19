@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.stats as stats
 
 
 def minute_to_daily_50Hertz(df):
@@ -28,6 +29,93 @@ def minute_to_daily_50Hertz(df):
         reshaped_df.index = pd.to_datetime(reshaped_df.index)
 
     return reshaped_df
+
+
+
+def add_previous_day_and_calculate_differences(df):
+
+    df = minute_to_daily_50Hertz(df)
+    df = df.copy()
+    df = df.drop([col for col in df.columns if "offshore" in col], axis=1)
+
+    # Step 1: Add columns for previous day's power values for each interval
+    df_prev = df.shift(1)  # Shifts all rows down by one to get the previous day's values
+
+    # Step 2: Calculate day-to-day differences for each interval
+    df_diff = df - df_prev  # Subtract shifted DataFrame to get the differences
+
+    # Combine original DataFrame, previous day, and difference DataFrames
+    # Prefix 'P_' for original, 'P_t-1_' for previous day, 'ΔP_' for differences
+    df_combined = pd.concat(
+        [df.add_prefix('P_'), df_prev.add_prefix('P_t-1_'), df_diff.add_prefix('ΔP_')],
+        axis=1
+    )
+    return df_combined
+
+
+def plot_difference_histograms(df_combined, max_plots=10):
+    plot_counter = 0
+
+    for col in df_combined.columns:
+        if 'ΔP_' in col:  # Only plot histograms for the difference columns
+            data = df_combined[col].dropna()
+            # Calculate the mean and standard deviation of the data
+            mean, std = np.mean(data), np.std(data)
+            
+            # Create the range of x values (the bin edges or a finer range)
+            x = np.linspace(data.min(), data.max(), 100)
+            
+            # Get the PDF of the normal distribution
+            pdf = stats.norm.pdf(x, mean, std)
+            
+            # Plot the histogram
+            plt.figure(figsize=(8, 6))
+            plt.hist(data, bins=30, density=True, color='skyblue', edgecolor='black', alpha=0.6)
+            
+            # Plot the normal distribution curve
+            plt.plot(x, pdf, 'r-', label=f'Normal Fit\n$\mu={mean:.2f}$, $\sigma={std:.2f}$')
+            
+            # Add labels and title
+            plt.title(f'Frequency Distribution of {col}', fontsize=12)
+            plt.xlabel('Difference (ΔP)', fontsize=10)
+            plt.ylabel('Density', fontsize=10)
+            plt.legend(loc='upper right')
+            plt.show()  # Display the plot for each column
+
+            # Increment the plot counter
+            plot_counter += 1
+            
+            # Stop after 10 plots
+            if plot_counter >= max_plots:
+                break  # Exit the loop after plotting 10 histograms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def plot_weibull_for_one_interval(Dataframe, time_interval):
 

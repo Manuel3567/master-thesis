@@ -161,9 +161,11 @@ def explorative_analysis(dataframe):
         print("Index column has no duplicates.")
     
     # Find rows with NaN values
-    nan_count = dataframe.isna().any(axis=1).sum()
-    print("\nRows with NaN values:")
-    nan_rows = dataframe[dataframe.isna().any(axis=1)]
+    #nan_count = dataframe.isna().any(axis=1).sum()
+    nan_count = dataframe["Power (kW)"].isna().sum()
+    print("\nRows with NaN values for Power (kW):")
+    #nan_rows = dataframe[dataframe.isna().any(axis=1)]
+    nan_rows = dataframe["Power (kW)"].isna()
     print(f"In total there are: {nan_count} for time frame {start} - {end}")
     display(nan_rows)
     

@@ -155,6 +155,30 @@ def load_turbine_data_dynamic(year: int):
     return merged_data
 
 
+def load_turbine_events_raw(year: int, data_path: str = "../data"):
+        """
+        Loads turbine events data for the specified year.
+        """
+        try:
+            # Adjust file start date if the year is 2016
+            start_date = "2016-06-24" if year == 2016 else f"{year}-01-01"
+            
+            file_path = Path(f"{data_path}/zenodo_turbine_data/raw/{year}/Status_Penmanshiel_09_{start_date}_-_{year + 1}-01-01_1049.csv")
+            
+            # Read the CSV file
+            turbine_events = pd.read_csv(
+                file_path,
+                skiprows=9,
+                quotechar='"',
+                encoding='utf-8-sig'
+            )
+            return turbine_events
+
+        except FileNotFoundError:
+            print(f"Error: File for year {year} not found.")
+            return None  # Explicitly return None on file error
+    
+
 def load_turbine_events_dynamic(year: int, data_path: str = "../data"):
         """
         Loads turbine events data for the specified year.
