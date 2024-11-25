@@ -6,6 +6,8 @@ import warnings
 import zipfile
 from io import BytesIO
 warnings.filterwarnings("ignore")
+import json
+
 
 # Function to download MERRA data for a range of dates
 def download_merra(start_date, end_date, token=None, longitude=13.125, lattitude=53.0, output_dir="../data/raw/merra2/"):
@@ -90,6 +92,8 @@ def download_merra(start_date, end_date, token=None, longitude=13.125, lattitude
     
 
 def download_zenodo(start_year: int, end_year: int, output_dir="../data/zenodo_turbine_data/raw/"):
+    # Time period: 2016-06-24 11:40 - 2021-06-30 23:50
+
 
     # Loop through the range of years specified
     for year in range(start_year, end_year + 1):
@@ -146,4 +150,30 @@ def download_zenodo(start_year: int, end_year: int, output_dir="../data/zenodo_t
                 print(f"Downloaded file is not a valid ZIP: {filename}")
 
 
+
+def download_forecast_data(output_dir="../data/weather_forecast/raw"):
+
+    url = "https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=55.82&longitude=-2.34&start_date=2021-03-23&end_date=2021-12-31&hourly=wind_speed_10m,wind_speed_80m,wind_speed_120m&wind_speed_unit=ms&models=gfs_seamless"
+
+    try:
+        # Send a GET request to the URL
+        response = requests.get(url)
+        
+        # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+            # Parse the JSON data
+            data = response.json()
+            os.makedirs(output_dir, exist_ok=True)
+
+            file_path = os.path.join(output_dir, "weather_forecast_data.json")
+
+            # Save the data to the file
+            with open(file_path, "w") as f:
+                json.dump(data, f, indent=4)  # Save with pretty indentation
+
+            print(f"Data saved successfully to {file_path}")
+        else:
+            print(f"Failed to retrieve data. Status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
     

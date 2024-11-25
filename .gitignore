@@ -3,10 +3,9 @@ data/*
 __pycache__/
 *.py[cod]
 *$py.class
-
+Meetings/*
 # C extensions
 *.so
-
 # Distribution / packaging
 .Python
 build/
@@ -176,3 +175,8 @@ README.pdf
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+
+To-Dos.md
+
+old

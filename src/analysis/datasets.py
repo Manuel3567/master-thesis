@@ -2,6 +2,9 @@ import pandas as pd
 import xarray as xr
 from pathlib import Path
 import matplotlib.pyplot as plt
+import json
+import os
+
 
 # Dataset 1
 def load_electricity(data_path: str = "../data"):
@@ -13,7 +16,6 @@ def load_electricity(data_path: str = "../data"):
     df.index = pd.to_datetime(df.index)
 
     return df
-
 
 # Dataset 2
 
@@ -266,7 +268,7 @@ def load_turbine_electricity_data_dynamic(year: int, data_path: str = "../data")
         return None
 
 
-def load_weather_forecast(data_path: str = "../data"):
+""" def load_weather_forecast(data_path: str = "../data"):
 
     try:
         file_path = Path(f"{data_path}/weather_forecast/raw/open-meteo-53.00N13.12E89m.csv")
@@ -281,7 +283,38 @@ def load_weather_forecast(data_path: str = "../data"):
         
     except FileNotFoundError:
         print(f"Error: File not found.")
+        return None """
+
+def load_forecast_data(file_path="../data/weather_forecast/raw/weather_forecast_data.json"):
+    try:
+        # Check if the file exists
+        if os.path.exists(file_path):
+            # Open the JSON file and load the data
+            with open(file_path, "r") as f:
+                data = json.load(f)
+            
+            # Extract the hourly time and the wind speed values from the data
+            hourly_data = data["hourly"]
+            time_series = hourly_data["time"]
+            
+            # Now, let's extract the wind speed values at different heights (e.g., wind_speed_10m, wind_speed_80m, etc.)
+            wind_speeds = {key: hourly_data.get(key, []) for key in hourly_data if key.startswith('wind_speed')}
+            
+            # Create a DataFrame from the wind speed data and the time
+            df = pd.DataFrame(wind_speeds)
+            df["time"] = time_series  # Add the time column
+            
+            # Ensure the time column is in datetime format
+            df["time"] = pd.to_datetime(df["time"])
+            
+            # Set time as the index (optional)
+            df.set_index("time", inplace=True)
+            
+            print(f"Data loaded successfully. Shape of the dataframe: {df.shape}")
+            return df
+        else:
+            print(f"File not found at {file_path}")
+            return None
+    except Exception as e:
+        print(f"An error occurred: {e}")
         return None
-
-
-
