@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
 def calculate_expected_entries(dataframe):
     """
     Calculate and print the expected and actual number of entries in the DataFrame based on its time index.
@@ -58,7 +59,7 @@ def get_wind_speed_columns(dataframe):
     return wind_speed_columns
 
 
-def plot_power_histogram_and_monthly_mean_timeseries(dataframe, start, end):
+def plot_power_histogram(dataframe, start, end):
     """Plot histograms and monthly time series for power-related columns."""
 
     power_columns = get_power_columns(dataframe)
@@ -76,20 +77,25 @@ def plot_power_histogram_and_monthly_mean_timeseries(dataframe, start, end):
         plt.xlabel(col)
         plt.ylabel("Frequency")
         plt.show()
-        print(f"\nPlotting monthly time series of {col} data for the time period {start} - {end}:")
 
+def plot_monthly_power_time_series(dataframe, start, end):
         
-        # Plot monthly time series
-        monthly_data = dataframe.resample('ME').mean()  # Resample by month, taking the mean
-        plt.figure(figsize=(10, 6))
-        plt.plot(monthly_data.index, monthly_data[col], marker='o', linestyle='-', color='b', label=col)
-        plt.title(f'Monthly Time Series of {col} Data for {start} - {end}')
-        plt.xlabel('Month')
-        plt.ylabel(f'{col}')
-        plt.xticks(rotation=45)
-        plt.legend()
-        plt.tight_layout()
-        plt.show()
+        power_columns = get_power_columns(dataframe)
+
+        for col in power_columns:
+            # Plot monthly time series
+            print(f"\nPlotting monthly time series of {col} data for the time period {start} - {end}:")
+            monthly_data = dataframe.resample('ME').mean()  # Resample by month, taking the mean
+            plt.figure(figsize=(10, 6))
+            plt.plot(monthly_data.index, monthly_data[col], marker='o', linestyle='-', color='b', label=col)
+            plt.title(f'Monthly Time Series of {col} Data for {start} - {end}')
+            plt.xlabel('Month')
+            plt.ylabel(f'{col}')
+            plt.xticks(rotation=45)
+            plt.legend()
+            plt.tight_layout()
+            plt.show()
+
 
 def plot_wind_speed_histogram(dataframe, start, end):
     """Plot histograms for wind speed-related columns."""
@@ -116,38 +122,21 @@ def plot_wind_speed_time_series(dataframe, start, end):
     if not wind_speed_columns:
         print("No wind speed columns found. Skipping wind speed time series plot.")
         return
-
-    # Ensure the index is datetime
-    dataframe.index = pd.to_datetime(dataframe.index)
+    
 
     for col in wind_speed_columns:
-        print(f"\nPlotting time series for: {col} for {start} - {end}")
-        
-        # Plot the time series
+        # Plot monthly time series
+        monthly_data = dataframe.resample('ME').mean()  # Resample by month, taking the mean
         plt.figure(figsize=(10, 6))
-        plt.plot(dataframe.index, dataframe[col], marker='o', linestyle='-', label=col)
-        plt.title(f'Time Series of {col} for {start} - {end}')
-        plt.xlabel('Date')
+        plt.plot(monthly_data.index, monthly_data[col], marker='o', linestyle='-', color='b', label=col)
+        plt.title(f'Monthly Time Series of {col} Data for {start} - {end}')
+        plt.xlabel('Month')
         plt.ylabel(f'{col}')
+        plt.xticks(rotation=45)
         plt.legend()
         plt.tight_layout()
         plt.show()
 
-def plot_relevant_columns(dataframe, start, end):
-    """coordinates the plotting of power, wind speed, and specific-month data."""
-   
-    # Plot power histograms and monthly time series
-    plot_power_histogram_and_monthly_mean_timeseries(dataframe, start, end)
-    
-    # Plot wind speed histograms
-    plot_wind_speed_histogram(dataframe, start, end)
-
-
-    plot_wind_speed_time_series(dataframe, start, end)
-
-    
-    # Plot specific month data based on user input
-    plot_power_data_for_specific_month(dataframe)
 
 def get_specific_month_year(dataframe):
     year = input("Which year would you like to have a time series? ")
@@ -212,7 +201,6 @@ def find_problematic_power_ranges(dataframe):
 
 def explorative_analysis(dataframe):
     """Perform a full exploratory analysis of the dataframe."""
-
     start = dataframe.index.min().date()
     end = dataframe.index.max().date()
     print(f"Summary statistics for time frame: {start} - {end}")
@@ -248,6 +236,27 @@ def explorative_analysis(dataframe):
     plot_relevant_columns(dataframe, start, end)
 
 
+def plot_relevant_columns(dataframe, start, end):
+    """Coordinates the plotting of power, wind speed, and specific-month data."""
+    # Check if wind data exists and plot
+    wind_speed_columns = get_wind_speed_columns(dataframe)
+    if wind_speed_columns:
+        print("\nPlotting wind speed data...")
+        plot_wind_speed_histogram(dataframe, start, end)
+        plot_wind_speed_time_series(dataframe, start, end)
+    
+    # Check if power data exists and plot
+    power_columns = get_power_columns(dataframe)
+    if power_columns:
+        print("\nPlotting power data...")
+        plot_power_histogram(dataframe, start, end)
+        plot_monthly_power_time_series(dataframe, start, end)
+        plot_power_data_for_specific_month(dataframe)
+
+
+
+
+
 def find_nan_powers(dataframe):
     start = dataframe.index.min()
     end = dataframe.index.max()
@@ -262,12 +271,7 @@ def find_nan_powers(dataframe):
             print(f"In total there are: {nan_count} NaN values for time frame {start} - {end}")
 
             nan_entries = dataframe[nan_rows]  # Filter the rows where NaN is present
-                
-            # Minimum index where NaN is found for 'onshore'
-            if col == "onshore" and nan_count > 0:
-                first_nan_index = dataframe[nan_rows].index.min()  # Get the first index with NaN
-                print(f"\nFirst NaN value in 'onshore' found at index: {first_nan_index}")
-    display(nan_entries)
+            display(nan_entries)
 
 
 def check_duplicates(dataframe):

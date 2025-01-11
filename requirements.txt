@@ -20,3 +20,7 @@ pandas
 numpy
 scipy
 zipfile36
+WebOb==1.8.9
+ngboost
+catboost
+properscoring

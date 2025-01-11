@@ -10,9 +10,6 @@
 5. [Exposé](#5-exposé)
 
 
-
-
-
 ## 1. Overview <a name="1-overview"></a>
 This is the overview section.
 
@@ -66,7 +63,28 @@ Detailed information about each dataset, including its source and preprocessing 
    - [TenneT](https://www.tennet.eu/de/kontakt)
    - [Amprion](https://www.amprion.net/Grid-Data/Generation/)
 - Time Zone: Use UTC to avoid complications due to summer and winter time changes.
-- Note: Dataset was downloaded on 11.10.2024 at 17:00 CEST.
+- Note: Dataset (2017-2023) was downloaded on 11.10.2024 at 17:00 CEST.
+- Dataset (2024) was downloaded on 06.01.2025 at 10:45 CEST.
+- Information on the dataset: https://transparencyplatform.zendesk.com/hc/en-us/articles/16648290299284-Actual-Generation-per-Production-Type-16-1-B-C
+
+
+[Netztransparenz](https://www.netztransparenz.de/de-de/Erneuerbare-Energien-und-Umlagen/EEG/EEG-Abrechnungen/EEG-Jahresabrechnungen/EEG-Anlagenstammdaten)
+lists the EEG-Anlagenstammdaten zur Jahresabrechnung 2023. Wir brauchen 3 files: 
+1. Die [Anlangenstammdaten_legende](https://www.netztransparenz.de/xspproxy/api/staticfiles/ntp-relaunch/dokumente/erneuerbare%20energien%20und%20umlagen/eeg/eeg-abrechnungen/eeg-jahresabrechnungen/eeg-anlagenstammdaten/anlagenstammdaten_legende.xlsx)
+2. [50Hertz](https://www.netztransparenz.de/xspproxy/api/staticfiles/ntp-relaunch/dokumente/erneuerbare%20energien%20und%20umlagen/eeg/eeg-abrechnungen/eeg-jahresabrechnungen/eeg-anlagenstammdaten/stammdaten_2023/50hertz_transmission_gmbh_eeg-zahlungen_anlagenstammdaten_2023.zip)
+3. PLZ Liste von Deutschland: [PLZ](https://public.opendatasoft.com/explore/dataset/georef-germany-postleitzahl/export/)
+
+- Energieträger 7 filtert auf wind an Land: Die totale Leistung ist 19,102 MW. Etwas weniger als die 21,078 MW im Faktsheet der installierten Leistung (https://www.50hertz.com/xspProxy/api/staticfiles/50hertz-client/images/medien/almanach_2023/230521_50hertz_br_almanach_2023_1920x1080_de_web.pdf#page=24)
+Tatsächlich kommen nur 1,145 MW von 50Hertz selbst. Diese sind über 24 PLZ (Orte) verteilt. 
+
+Die meiste Leistung kommt von insgesamt 68 weiteren Anbietern. Der größte Anteil kommt von dem Anbieter: E.DIS Netz GmbH. Der kleinste kommt von Saalfelder Energienetze GmbH.
+Insgesamt gibt es 565 verschiedene PLZ und sogar 928 verschiedene Ortschaften.
+
+50Hertz miteingenommen gibt es 9686 Windturbinen, die in 928 Ortschaften stehen. Man bräuchte also Winddaten für 928 Orte. Wenn man sich mit PLZ zufrieden gibt, bräuchte man es noch an 565 verschiedenen Stellen.
+
+
+- Energieträger 8 filtert auf wind offshore: Der einzige Netzbetreiber, der Strom liefert ist 50Hertz Transmission GmbH. Die angegebene Leistung ist 1,352 MW stimmt mit dem Faktsheet der installierten Leistung überein (https://www.50hertz.com/xspProxy/api/staticfiles/50hertz-client/images/medien/almanach_2023/230521_50hertz_br_almanach_2023_1920x1080_de_web.pdf#page=24)
+
 
 #### 2. Historical Meteorological data
 - [Dataset: inst1_2d_lfo_Nx (M2I1NXLFO)](https://goldsmr4.gesdisc.eosdis.nasa.gov/opendap/MERRA2/M2I1NXLFO.5.12.4/contents.html)
@@ -75,7 +93,9 @@ Detailed information about each dataset, including its source and preprocessing 
 - Coordinates: Lattitude/Longitude-based
 - Time Zone: All dates and times are in UTC.
 - [Dataset Documentation](https://git.earthdata.nasa.gov/projects/ECS/repos/uvg/raw/input/MERRA2.README.pdf?at=refs%2Fheads%2Fdev)
-- Note: Dataset was downloaded from 05.10.2024 - 20.10.2024  
+- Note: Dataset was downloaded from 05.10.2024 - 20.10.2024
+- Note: 03.12: I had to extend the requirements.txt file with "WebOb==1.8.9" to make it work because it said "No module named 'webob'"
+   - Status 03.12.2024 Data until 01.11.2024
 
 #### 3. Penmanshiel
 - Data provided by Zenodo who obtained it from Cubico Sustainable Investment Ltd, the operator of the Penmanshiel wind farm in the UK

@@ -5,8 +5,7 @@ import scipy.stats as stats
 from scipy.stats import weibull_min
 from scipy.special import gamma
 import seaborn as sns
-
-
+from analysis.datasets import *
 
 
 def minute_to_daily_50Hertz(df):
@@ -372,7 +371,7 @@ def to_train_validation_test_data(df: pd.DataFrame, train_end_date: str, validat
 
 def load_installed_capacity(start_date="2017-01-01", end_date="2024-01-01", method="linear"):
     """
-    Loads the installed capacity data of all onshore wind turbines of the North German supplier 50Hertz
+    Loads the installed capacity data of all onshore wind turbines of the North German supplier 50Hertz in MW
     from 2017-06-01 - 2023-06-01 and interpolates missing values at 15-minute intervals.
 
     Parameters:
@@ -392,7 +391,7 @@ def load_installed_capacity(start_date="2017-01-01", end_date="2024-01-01", meth
 
     data = {
         'date': ['2017-06-01', '2018-06-01', '2019-06-01', '2020-06-01', '2021-06-01', '2022-06-01', '2023-06-01'],
-        'installed_capacity': [17866, 18346, 18711, 19138, 19748, 20414, 21078]
+        'installed_capacity (MW)': [17866, 18346, 18711, 19138, 19748, 20414, 21078]
     }
 
     # Create a DataFrame
@@ -411,3 +410,268 @@ def load_installed_capacity(start_date="2017-01-01", end_date="2024-01-01", meth
     df = df.reindex(dt).bfill().ffill()
 
     return df
+
+
+
+def load_and_merge_wind_data(start_date: str, end_date: str) -> pd.DataFrame:
+    """
+    Loads and merges MERRA2 and turbine data with 1-hour resampled intervals.
+    
+    Args:
+        start_date (str): The start date for the analysis (format: 'YYYY-MM-DD').
+        end_date (str): The end date for the analysis (format: 'YYYY-MM-DD').
+    
+    Returns:
+        pd.DataFrame: Combined DataFrame with columns `ws_merra`, `ws_penn`, and `delta`.
+    """
+    # Load and preprocess MERRA2 data
+    merra = load_merra2(start_date=start_date, end_date=end_date)
+    merra = merra.drop(columns=[col for col in merra.columns if col != "wind_speed (m/s)"])
+    
+    # Load and preprocess turbine electricity data
+    penn = load_turbine_electricity_data_dynamic(2016)
+    penn = penn.drop(columns=[col for col in penn.columns if col != "Wind speed (m/s)"])
+    penn = penn.resample("H").mean()  # Resampling to 1-hour intervals
+    penn = penn.loc[start_date:end_date]
+    
+    # Merge datasets
+    combined = pd.merge(merra, penn, left_index=True, right_index=True, how="inner")
+    
+    # Rename columns for clarity
+    combined.rename(columns={"wind_speed (m/s)": "ws_merra", "Wind speed (m/s)": "ws_penn"}, inplace=True)
+    
+    # Calculate delta
+    combined['delta'] = combined['ws_merra'] - combined['ws_penn']
+    
+    return combined
+
+
+def analyze_wind_speed(combined: pd.DataFrame) -> None:
+    """
+    Analyzes the combined wind speed data by generating a scatter plot of the two sources' wind speeds.
+    
+    Args:
+        combined (pd.DataFrame): Combined DataFrame with columns `ws_merra`, `ws_penn`, and `delta`.
+    
+    Returns:
+        None
+    """
+    # Print index information
+    print("Index minimum:", combined.index.min())
+    print("Index maximum:", combined.index.max())
+    
+    # Scatter plot
+    plt.figure(figsize=(8, 6))
+    plt.scatter(combined["ws_merra"], combined["ws_penn"], alpha=0.7)
+    plt.title(f"Wind Speed Comparison")
+    plt.xlabel("MERRA2 Wind Speed (m/s)")
+    plt.ylabel("Turbine Wind Speed (m/s)")
+    plt.grid(True)
+    plt.show()
+
+
+
+import pandas as pd
+
+def process_and_merge_dataframes(wind_park_data, electricity_data):
+    """
+    Processes and merges two dataframes: interpolates wind_park_data, applies minute_to_daily_50Hertz, 
+    filters for "mean" columns, and merges with electricity_data on time index.
+
+    Args:
+        wind_park_data (pd.DataFrame): Wind park data loaded using `load_wind_park_data()`.
+        electricity_data (pd.DataFrame): ENTSO-E data loaded using `load_entsoe()`.
+        minute_to_daily_50Hertz (function): Function to apply to the interpolated wind_park_data.
+
+    Returns:
+        pd.DataFrame: Merged dataframe.
+    """
+    # Step 1: Filter columns containing "mean"
+    wind_park_data_mean = wind_park_data.filter(like="mean")
+    
+    # Step 2: Interpolate wind_park_data_mean from 1-hour intervals to 15-minute intervals
+    wind_park_data_mean.index = pd.to_datetime(wind_park_data_mean.index)  # Ensure index is datetime
+    wind_park_data_interpolated = wind_park_data_mean.resample("15T").interpolate(method="linear")
+    
+    # Step 3: Apply minute_to_daily_50Hertz function
+    wind_park_data_processed = minute_to_daily_50Hertz(wind_park_data_interpolated)
+    
+    # Step 4: Load and process electricity_data (keep only the "onshore" column)
+    electricity_data_processed = electricity_data[["onshore"]].copy()
+    electricity_data_processed = minute_to_daily_50Hertz(electricity_data_processed)
+    electricity_data_processed.index = pd.to_datetime(electricity_data_processed.index)  # Ensure index is datetime
+    
+    # Step 5: Merge the processed dataframes on time index
+    merged_df = pd.merge(
+        wind_park_data_processed,
+        electricity_data_processed,
+        left_index=True,
+        right_index=True,
+        how="inner"
+    )
+    
+    return merged_df
+
+
+def get_columns_by_time(df, time: str):
+    time = time.replace(":", "_")
+    columns = [c for c in df.columns if c.endswith(time)]
+    df_filtered = df.loc[:, columns]
+
+    return df_filtered
+
+
+
+def plot_wind_parks_cumulative_capacity(aggregated_df):
+    """
+    Plots the cumulative percentage of installed capacity for wind parks, sorted by size.
+
+    Parameters:
+        aggregated_df (pd.DataFrame): A DataFrame containing 'installed_capacity_sum' and 
+                                      'cumulative_percentage' columns.
+
+    Returns:
+        None
+    """
+    # Sort the DataFrame by installed_capacity_sum
+    sorted_df = aggregated_df.sort_values(by='installed_capacity_sum', ascending=False).reset_index()
+
+    # Create a plot for cumulative percentage
+    plt.figure(figsize=(10, 6))
+
+    # Plot cumulative percentage
+    plt.plot(sorted_df.index, sorted_df['cumulative_percentage'], 
+             label='Cumulative Percentage', color='blue', marker='o')
+
+    # Add labels and title
+    plt.xlabel('Index (Sorted by Installed Capacity)')
+    plt.ylabel('Cumulative Percentage (%)')
+    plt.title('Cumulative Percentage of Installed Capacity for Wind Parks')
+    plt.axhline(100, color='red', linestyle='--', label='100% Threshold')  # Optional line for 100% mark
+
+    # Add grid for better readability
+    plt.grid(visible=True, linestyle='--', alpha=0.7)
+
+    # Add legend
+    plt.legend()
+
+    # Show the plot
+    plt.show()
+
+
+def plot_installed_capacity_scatter(aggregated_df):
+    """
+    Creates a scatter plot of installed capacity with points sized based on capacity
+    and highlights the weighted average longitude and latitude.
+
+    Parameters:
+        aggregated_df (pd.DataFrame): A DataFrame containing 'installed_capacity_sum', 
+                                      'longitude', and 'latitude' columns.
+
+    Returns:
+        None
+    """
+    # Scale the size for better visualization (adjust the scaling factor as needed)
+    sizes = aggregated_df['installed_capacity_sum'] * 0.001
+
+    # Calculate the weighted average longitude and latitude
+    weighted_longitude = (
+        (aggregated_df['longitude'] * aggregated_df['installed_capacity_sum']).sum() /
+        aggregated_df['installed_capacity_sum'].sum()
+    )
+    weighted_latitude = (
+        (aggregated_df['latitude'] * aggregated_df['installed_capacity_sum']).sum() /
+        aggregated_df['installed_capacity_sum'].sum()
+    )
+
+    # Create scatter plot
+    plt.figure(figsize=(10, 6))
+    plt.scatter(
+        aggregated_df['longitude'],
+        aggregated_df['latitude'],
+        s=sizes,  # Set the size of the points based on 'installed_capacity_sum'
+        alpha=0.5
+    )
+
+    # Add lines for weighted averages
+    plt.axhline(weighted_latitude, color='red', linestyle='--', label='Total Weighted Average Latitude')
+    plt.axvline(weighted_longitude, color='blue', linestyle='--', label='Total Weighted Average Longitude')
+
+    # Highlight the current mean
+    plt.scatter(13.125, 53.00, color='red', s=100, label='Current Mean (13.125, 53.00)', zorder=5, marker='x')
+
+    # Add labels, title, and legend
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    plt.title('Scatter Plot of Installed Capacity')
+    plt.legend()
+
+    # Show the plot
+    plt.show()
+
+
+
+def plot_top_10_wind_parks_by_installed_capacity(aggregated_df):
+    """
+    Creates a scatter plot of wind park locations, highlighting the 10 largest wind parks 
+    in terms of installed capacity.
+
+    Parameters:
+        aggregated_df (pd.DataFrame): A DataFrame containing 'installed_capacity_sum', 
+                                      'longitude', and 'latitude' columns.
+
+    Returns:
+        None
+    """
+    # Scale the size for better visualization (adjust the scaling factor as needed)
+    sizes = aggregated_df['installed_capacity_sum'] * 0.001
+
+    # Calculate the weighted average longitude and latitude
+    weighted_longitude = (
+        (aggregated_df['longitude'] * aggregated_df['installed_capacity_sum']).sum() /
+        aggregated_df['installed_capacity_sum'].sum()
+    )
+    weighted_latitude = (
+        (aggregated_df['latitude'] * aggregated_df['installed_capacity_sum']).sum() /
+        aggregated_df['installed_capacity_sum'].sum()
+    )
+
+    # Identify the indices of the 10 largest wind parks
+    largest_indices = aggregated_df['installed_capacity_sum'].nlargest(10).index
+
+    # Create scatter plot
+    plt.figure(figsize=(10, 6))
+
+    # Plot all wind park locations
+    plt.scatter(
+        aggregated_df['longitude'],
+        aggregated_df['latitude'],
+        s=sizes,  # Set the size of the points based on 'installed_capacity_sum'
+        alpha=0.5,
+        label='Other Points',
+        color='gray'
+    )
+
+    # Highlight the 10 largest wind parks
+    plt.scatter(
+        aggregated_df.loc[largest_indices, 'longitude'],
+        aggregated_df.loc[largest_indices, 'latitude'],
+        s=sizes[largest_indices],  # Use the same sizes
+        alpha=0.8,
+        color='orange',
+        label='Top 10 Largest'
+    )
+
+    # Plot weighted averages and markers
+    plt.axhline(weighted_latitude, color='red', linestyle='--', label='Total Weighted Average Latitude')
+    plt.axvline(weighted_longitude, color='blue', linestyle='--', label='Total Weighted Average Longitude')
+    plt.scatter(13.125, 53.00, color='red', s=100, label='Current Mean (13.125, 53.00)', zorder=5, marker='x')
+
+    # Add labels, title, and legend
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    plt.title('Scatter Plot of Installed Capacity with Top 10 Wind Parks Highlighted')
+    plt.legend()
+
+    # Show the plot
+    plt.show()

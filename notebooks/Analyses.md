@@ -41,6 +41,18 @@ Analysis of 2nd "Events": "Warning - P output externally reduced - Warnings (27)
 - Difference to "Full Performance" is "Lost production" != 0 or "Production-based IEC B.2.3 != 1"
 - This seems to indicate that the power transferred to the grid is reduced but the power produced by the turbine is not affected
 
+
+
+### Turbinendatensatz Pennmanshiel
+
+Split:
+- Train: 01.08.2016 - 30-06.2019
+- Validation: 01.07.2019 - 30.06.2020
+- Test: 01.07.2020 - 30.06.2021
+
+
+
+
 ### Forecast data
 - Aim: compare one-day forecast wind speed against actual wind speed for the time range available from open meteo (3 months) 
 - Selection:
@@ -165,6 +177,36 @@ returns
 - url: https://archive-api.open-meteo.com/v1/archive?latitude=51&longitude=12.96&start_date=2024-08-21&end_date=2024-11-21&hourly=wind_speed_10m,wind_speed_100m&wind_speed_unit=ms
 
 
+3. Historical Forecast API
+
+works (hourly):
+- https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&start_date=2021-08-01&end_date=2021-08-01&hourly=wind_speed_10m&wind_speed_unit=ms
+
+
+- https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=55.904990&longitude=-2.29&start_date=2021-08-01&end_date=2021-08-01&hourly=wind_speed_10m&wind_speed_unit=ms
+
+works (15-minutely)
+- https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=55.904990&longitude=-2.29&start_date=2021-08-01&end_date=2021-08-01&minutely_15=wind_speed_10m&wind_speed_unit=ms
+returns location: latitude":55.9,"longitude":-2.2800002
+
+- https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=55.904990&longitude=-2.291&start_date=2021-08-01&end_date=2021-08-01&minutely_15=wind_speed_10m&wind_speed_unit=ms
+returns location: latitude":55.9,"longitude":-2.3000002 
+
+- https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=55.904990&longitude=-2.291&start_date=2021-03-23&end_date=2021-03-23&minutely_15=wind_speed_10m&wind_speed_unit=ms
+returns location: latitude":55.9,"longitude":-2.3000002
+
+NCEP HRRR U.S. Conus although according to documentation is available since 2018-01-01 no results for location latitude: 55.9, longitude: -2.3000002 (https://open-meteo.com/en/docs/historical-forecast-api#start_date=2021-03-23&end_date=2021-03-23&hourly=wind_speed_10m&wind_speed_unit=ms&models=gfs_hrrr)
+
+- model "JMA GSM" goes back to 2016 even for a location close to Pennmanshiel but only has a native resolution of 6 hours.
+https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=55.90499&longitude=-2.291806&start_date=2016-01-01&end_date=2016-01-02&hourly=wind_speed_10m&wind_speed_unit=ms&temporal_resolution=native&models=jma_gsm
+returns location: latitude":56.0,"longitude":-2.5
+
+api costs for 2016-01-01 - 2024-11-30 = 46.5
+
+- model "JMA GSM" can be obtained 15-minutely against its native resolution (interpolated then?)
+https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=55.85&longitude=-2.4&start_date=2016-01-01&end_date=2016-01-02&minutely_15=wind_speed_10m&wind_speed_unit=ms&models=jma_gsm 
+returns location: latitude":56.0,"longitude":-2.5
+
 
 ## - Meeting: 22.11.2024 Vorschlag: Evaluation mit historischen prognosen und Prognosenfehler dann interpretieren
 
@@ -240,6 +282,19 @@ returns:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### How big is the difference between d0 forecasts from the closest point available at turbine 09 at Pennmanshiel compared to the measured SCADA data
 
 ### query 3. from above with start date and end date adjusted to match the time period of Pennmanshiel dataset:
@@ -287,9 +342,4 @@ For longitude: **-2.34** or -2.23
 
 
 
-### Turbinendatensatz Pennmanshiel
 
-Split:
-- Train: 01.08.2016 - 30-06.2019
-- Validation: 01.07.2019 - 30.06.2020
-- Test: 01.07.2020 - 30.06.2021
