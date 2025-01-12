@@ -176,7 +176,7 @@ README.pdf
 # Built Visual Studio Code Extensions
 *.vsix
 
-
+data_old/*
 To-Dos.md
 
 old

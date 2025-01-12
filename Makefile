@@ -21,7 +21,7 @@ electricity:
 
 merra:
 	@echo "Downloading Merra2 data from NASA. Make sure to have a .env file with a valid MERRA_TOKEN set."
-	@python -c "import analysis.downloads; analysis.downloads.download_merra('2017-01-01', '2024-09-01', output_dir='./data/raw/merra2')"
+	@python -c "import analysis.downloads; analysis.downloads.download_merra('2017-01-01', '2024-12-02', output_dir='./data/merra2')"
 # Clean up the zip file and data directory
 clean:
 	@echo "Cleaning up..."

@@ -8,13 +8,9 @@ from io import BytesIO
 warnings.filterwarnings("ignore")
 import json
 
-
-
-
-
-
-
-
+from .datasets import get_coordinates_of_grid_operators
+import pandas as pd
+from time import sleep
 
 
 # Function to download MERRA data for a range of dates
@@ -370,9 +366,7 @@ def download_actual_historical_weather_3_months_zenodo(output_dir="../data/weath
         print(f"An error occurred: {e}")
     
 
-import requests
-import pandas as pd
-from time import sleep
+
 
 
 def find_minimum_start_date(lat_start, lat_end, lon_start, lon_end, lat_steps, lon_steps):
@@ -450,15 +444,44 @@ def download_forecast_data(output_dir="../data/weather_forecast/raw"):
         print(f"An error occurred: {e}")
 '''
 
-from analysis.datasets import get_coordinates_of_geographic_mean_and_10_biggest_wind_turbines_by_installed_capacity
-import os
-import requests
-import json
+def _get_coordinates_of_geographic_mean_and_10_biggest_wind_turbines_by_installed_capacity():
+    """
+    Computes the geographic mean (weighted by installed capacity) and retrieves
+    the coordinates of the 10 largest wind turbines by installed capacity.
+
+    Returns:
+        tuple: (latitudes, longitudes) as comma-separated strings.
+    """
+    aggregated_df = get_coordinates_of_grid_operators()
+
+    # Sort by installed_capacity_sum
+    aggregated_df = aggregated_df.sort_values(by='installed_capacity_sum', ascending=False)
+    df = aggregated_df.head(10)
+
+    # Calculate weighted averages
+    weighted_longitude = (aggregated_df['longitude'] * aggregated_df['installed_capacity_sum']).sum() / aggregated_df['installed_capacity_sum'].sum()
+    weighted_latitude = (aggregated_df['latitude'] * aggregated_df['installed_capacity_sum']).sum() / aggregated_df['installed_capacity_sum'].sum()
+
+    # Create latitude and longitude strings
+    longitudes = f"{weighted_longitude}," + ",".join(df['longitude'].astype(str))
+    latitudes = f"{weighted_latitude}," + ",".join(df['latitude'].astype(str))
+
+    return latitudes, longitudes
+
+from pathlib import Path
+
+def download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geographic_mean(start_date="2016-01-01", end_date="2024-12-31", data_path='../data'):
+
+    output_dir = Path(data_path) / 'open_meteo/historical'
+    
+    latitudes, longitudes = _get_coordinates_of_geographic_mean_and_10_biggest_wind_turbines_by_installed_capacity()
+    download_open_meteo_historical_wind_speeds(start_date, end_date, latitudes, longitudes, output_dir=output_dir, filename="top_10_biggest_wind_parks_50hertz.json")
 
 
-def download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geographic_mean(start_date, end_date, output_dir):
+def download_open_meteo_historical_wind_speeds(start_date, end_date, latitudes: str, longitudes: str, output_dir, filename):
 
-    latitudes, longitudes = get_coordinates_of_geographic_mean_and_10_biggest_wind_turbines_by_installed_capacity()
+    # latitudes and longitudes need to be comma separated
+
     url = f"https://archive-api.open-meteo.com/v1/archive?latitude={latitudes}&longitude={longitudes}&start_date={start_date}&end_date={end_date}&hourly=wind_speed_10m,wind_speed_100m&wind_speed_unit=ms"
     print(url)
     try:
@@ -473,7 +496,7 @@ def download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geo
                 data = response.json()
                 os.makedirs(output_dir, exist_ok=True)
 
-                file_path = os.path.join(output_dir, "top_10_biggest_wind_parks_50hertz.json")
+                file_path = os.path.join(output_dir, filename)
 
                 # Save the data to the file
                 with open(file_path, "w") as f:
@@ -483,4 +506,4 @@ def download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geo
         else:
                 print(f"Failed to retrieve data. Status code: {response.status_code}")
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred: {e}")    

@@ -33,16 +33,16 @@ from datetime import datetime
 
 # 1.1 ENTSO-E (Aggregated power output of turbines)
 
-def load_entsoe(data_path: str = "../data"):
+def load_entsoe_raw(data_path: str = "../data"):
 
     files = list(Path(f"{data_path}/entsoe").glob("*"))
-    dfs = [_load_entsoe(f) for f in files]
+    dfs = [_load_entsoe_raw(f) for f in files]
     df = pd.concat(dfs)
 
     return df
 
 
-def _load_entsoe(file: Path):
+def _load_entsoe_raw(file: Path):
     cleaned_lines = []
     
     with open(file, "r") as f:
@@ -82,61 +82,45 @@ def _load_entsoe(file: Path):
     return df
 
 
-# 1.2 eeg 50Hertz-Anlagenstammdaten
 
-def load_and_process_eeg_data(eeg_file_path='../data/50Hertz_Transmission_GmbH_EEG-Zahlungen_Stammdaten_2023.csv'):
-    """
-    Loads and processes the EEG data.
-
-    Parameters:
-        eeg_file_path (str): Path to the EEG payments CSV file.
-
-    Returns:
-        pd.DataFrame: Processed EEG data.
-    """
+def _load_grid_operator_data(data_path='../data/'):
+    file_path = Path(data_path) / 'netztransparenz/50Hertz_Transmission_GmbH_EEG-Zahlungen_Stammdaten_2023.csv'
     dtype_dict = {'PLZ': 'object'}  # Treat PLZ as an object initially
 
     # Load EEG data
-    eeg_data = pd.read_csv(
-        eeg_file_path,
+    operator_data = pd.read_csv(
+        file_path,
         encoding='ISO-8859-1',
         engine='python',
         sep=";",
         dtype=dtype_dict
     )
 
-    # Drop NaN and convert 'PLZ' to int
-    eeg_data = eeg_data.dropna(subset=['PLZ'])
-    eeg_data['PLZ'] = eeg_data['PLZ'].astype('int')
+    # Drop NaN and convert 'PLZ' to int for compatibility purposes
+    operator_data = operator_data.dropna(subset=['PLZ'])
+    operator_data['PLZ'] = operator_data['PLZ'].astype('int')
 
     # Rename column PLZ to plz
-    eeg_data.rename(columns={'PLZ': 'plz'}, inplace=True)
+    operator_data.rename(columns={'PLZ': 'plz'}, inplace=True)
 
     # Convert "Installierte_Leistung" to numeric
-    eeg_data['Installierte_Leistung'] = pd.to_numeric(
-        eeg_data['Installierte_Leistung'], errors='coerce'
+    operator_data['Installierte_Leistung'] = pd.to_numeric(
+        operator_data['Installierte_Leistung'], errors='coerce'
     )
 
-    return eeg_data
+    return operator_data
 
 
 # 1.3 plz in Germany
 
-def load_and_process_plz_data(plz_file_path='../data/georef-germany-postleitzahl.csv'):
-    """
-    Loads and processes the Germany postal code data.
+def _load_plz_data(data_path='../data/'):
+    file_path = Path(data_path) / 'opendatasoft/georef-germany-postleitzahl.csv'
 
-    Parameters:
-        plz_file_path (str): Path to the Germany postal code CSV file.
-
-    Returns:
-        pd.DataFrame: Processed postal code data.
-    """
     dtype_dict = {'Postleitzahl / Post code': 'int'}
 
     # Load postal code data
     plz_data = pd.read_csv(
-        plz_file_path,
+        file_path,
         skip_blank_lines=False,
         encoding='utf-8-sig',
         sep=";",
@@ -150,55 +134,13 @@ def load_and_process_plz_data(plz_file_path='../data/georef-germany-postleitzahl
 
     return plz_data
 
+def get_coordinates_of_grid_operators(data_path='../data'):
 
-# 1.4 Merged file of 2. and 3. to find  --> maps the grid providers to a location (plz)
-
-def load_wind_turbine_coordinates_from_zips():
-    df = merge_eeg_plz_data()
-
-    return df
-
-def load_10_biggest_wind_turbines_by_installed_capacity(n):
-    df = merge_eeg_plz_data().head(n)
-    
-    return df
-
-def get_coordinates_of_geographic_mean_and_10_biggest_wind_turbines_by_installed_capacity():
-    """
-    Computes the geographic mean (weighted by installed capacity) and retrieves
-    the coordinates of the 10 largest wind turbines by installed capacity.
-
-    Returns:
-        tuple: (latitudes, longitudes) as comma-separated strings.
-    """
-    aggregated_df = merge_eeg_plz_data()
-    df = load_10_biggest_wind_turbines_by_installed_capacity(n=10)
-
-    # Calculate weighted averages
-    weighted_longitude = (aggregated_df['longitude'] * aggregated_df['installed_capacity_sum']).sum() / aggregated_df['installed_capacity_sum'].sum()
-    weighted_latitude = (aggregated_df['latitude'] * aggregated_df['installed_capacity_sum']).sum() / aggregated_df['installed_capacity_sum'].sum()
-
-    # Create latitude and longitude strings
-    longitudes = f"{weighted_longitude}," + ",".join(df['longitude'].astype(str))
-    latitudes = f"{weighted_latitude}," + ",".join(df['latitude'].astype(str))
-
-    return latitudes, longitudes
-
-
-
-def merge_eeg_plz_data():
-    """
-    Merges the EEG data and postal code data, and performs aggregation.
-
-    Returns:
-        pd.DataFrame: Aggregated DataFrame.
-    """
-
-    eeg_data = load_and_process_eeg_data()
-    plz_data = load_and_process_plz_data()
+    operator_data = _load_grid_operator_data(data_path)
+    plz_data = _load_plz_data(data_path)
 
     # Merge datasets
-    merged_df = eeg_data.merge(plz_data, on='plz', how='left')
+    merged_df = operator_data.merge(plz_data, on='plz', how='left')
 
     # Split 'geo_point_2d' into latitude and longitude
     merged_df[['latitude', 'longitude']] = merged_df['geo_point_2d'].str.split(',', expand=True)
@@ -207,8 +149,9 @@ def merge_eeg_plz_data():
     merged_df['latitude'] = pd.to_numeric(merged_df['latitude'], errors='coerce')
     merged_df['longitude'] = pd.to_numeric(merged_df['longitude'], errors='coerce')
 
-    # Filter for Energietraeger (category wind) == 7
-    filtered_df = merged_df[merged_df['Energietraeger'] == 7]
+    # Filter for Energietraeger (category wind) == 7 taken from the legende file
+    wind_on_land_category = 7
+    filtered_df = merged_df[merged_df['Energietraeger'] == wind_on_land_category]
     filtered_df = filtered_df[['plz', 'Installierte_Leistung', 'EEG-Anlagenschluessel', 'longitude', 'latitude']]
 
     # Group and aggregate data
@@ -225,8 +168,6 @@ def merge_eeg_plz_data():
     # Sort by installed_capacity_sum
     aggregated_df = aggregated_df.sort_values(by='installed_capacity_sum', ascending=False)
 
-    aggregated_df = aggregated_df.sort_values(by='installed_capacity_sum', ascending=False)
-
     aggregated_df['cumulative_capacity'] = aggregated_df['installed_capacity_sum'].cumsum()
 
     total_installed_capacity = aggregated_df['installed_capacity_sum'].sum()
@@ -234,16 +175,25 @@ def merge_eeg_plz_data():
 
     return aggregated_df
 
-    
 
 
-# 1.5 Wind speed data at the location of the 10 biggest wind parks identified
+#_wind_speed_data_of_geographic_mean_and_10_biggest_wind_turbines_by_installed_capacity
 
-def load_wind_park_data(file_path="../data/top_10_biggest_wind_parks/top_10_biggest_wind_parks_50hertz.json"):
+def load_open_meteo_historical_wind_speed(data_path="../data/"):
+
+    file_path = Path(data_path) / 'open_meteo/historical/top_10_biggest_wind_parks_50hertz.json'
+
     try:
         # Load the JSON file
         with open(file_path, "r") as f:
             data = json.load(f)
+
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
+    except json.JSONDecodeError:
+        print(f"Error decoding the JSON file: {file_path}")
+    
+    try:
         
         # Initialize an empty list to hold the processed data
         processed_data = []
@@ -287,14 +237,60 @@ def load_wind_park_data(file_path="../data/top_10_biggest_wind_parks/top_10_bigg
         print(f"Data loaded and transformed successfully. Shape of DataFrame: {pivoted_df.shape}")
         return pivoted_df
 
-    except FileNotFoundError:
-        print(f"File not found: {file_path}")
-    except json.JSONDecodeError:
-        print(f"Error decoding the JSON file: {file_path}")
+
     except KeyError:
         print("The expected data structure is not found in the JSON file.")
     except Exception as e:
         print(f"An error occurred: {e}")
+
+
+
+def _load_installed_capacity(start_date="2017-01-01", end_date="2024-01-01", method="linear"):
+    """
+    Loads the installed capacity data of all onshore wind turbines of the North German supplier 50Hertz in MW
+    from 2017-06-01 - 2023-06-01 and interpolates missing values at 15-minute intervals.
+
+    Parameters:
+    -----------
+    start_date : str, optional, default="2017-01-01"
+        The start date for the data range in 'YYYY-MM-DD' format.
+    end_date : str, optional, default="2024-01-01"
+        The end date for the data range in 'YYYY-MM-DD' format.
+    method : str, optional, default="linear"
+        The interpolation method to use (e.g., "linear", "polynomial").
+
+    Returns:
+    --------
+    pd.DataFrame
+        A DataFrame containing the interpolated installed capacity data at 15-minute intervals for the given date range.
+    """
+
+    data = {
+        'date': ['2017-06-01', '2018-06-01', '2019-06-01', '2020-06-01', '2021-06-01', '2022-06-01', '2023-06-01'],
+        'installed_capacity (MW)': [17866, 18346, 18711, 19138, 19748, 20414, 21078]
+    }
+
+    # Create a DataFrame
+    df = pd.DataFrame(data)
+
+    # Convert 'year' column to datetime format
+    df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+
+    # Set 'year' as the index
+    df.set_index('date', inplace=True)
+
+    # Resample to 15-minute intervals and interpolate using the specified method
+    df = df.resample("15min").interpolate(method=method)
+
+    dt = pd.date_range(start_date, end_date, inclusive="left", freq="15min")
+    df = df.reindex(dt).bfill().ffill()
+
+    return df
+
+
+
+
+
 
 #-------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -439,6 +435,28 @@ def load_3_months_0day_1day_forecasts_zenodo(file_path="../data/weather_forecast
         print(f"An error occurred: {e}")
         return None
 
+
+def load_entsoe(data_path: str = "../data"):
+
+    entsoe_raw = load_entsoe_raw(data_path)
+    open_meteo = load_open_meteo_historical_wind_speed(data_path)
+
+    entsoe_raw.index = pd.to_datetime(entsoe_raw.index)
+    open_meteo.index = pd.to_datetime(open_meteo.index)
+
+    # Resample the 1-hour interval DataFrame (open meteo) to 15-minute intervals
+    df_meteo_resampled = open_meteo.resample('15min').interpolate(method='linear')
+
+    # Merge the two DataFrames
+    merged_df = pd.merge(
+        entsoe_raw, 
+        df_meteo_resampled, 
+        left_index=True, 
+        right_index=True, 
+        how='inner'  # Adjust join type if necessary (e.g., 'outer', 'left', 'right')
+    )
+    
+    return merged_df
 
 
 
