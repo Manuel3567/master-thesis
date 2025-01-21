@@ -12,6 +12,71 @@ from .datasets import get_coordinates_of_grid_operators
 import pandas as pd
 from time import sleep
 
+def _get_coordinates_of_geographic_mean_and_10_biggest_wind_turbines_by_installed_capacity():
+    """
+    Computes the geographic mean (weighted by installed capacity) and retrieves
+    the coordinates of the 10 largest wind turbines by installed capacity.
+
+    Returns:
+        tuple: (latitudes, longitudes) as comma-separated strings.
+    """
+    aggregated_df = get_coordinates_of_grid_operators()
+
+    # Sort by installed_capacity_sum
+    aggregated_df = aggregated_df.sort_values(by='installed_capacity_sum', ascending=False)
+    df = aggregated_df.head(10)
+
+    # Calculate weighted averages
+    weighted_longitude = (aggregated_df['longitude'] * aggregated_df['installed_capacity_sum']).sum() / aggregated_df['installed_capacity_sum'].sum()
+    weighted_latitude = (aggregated_df['latitude'] * aggregated_df['installed_capacity_sum']).sum() / aggregated_df['installed_capacity_sum'].sum()
+
+    # Create latitude and longitude strings
+    longitudes = f"{weighted_longitude}," + ",".join(df['longitude'].astype(str))
+    latitudes = f"{weighted_latitude}," + ",".join(df['latitude'].astype(str))
+
+    return latitudes, longitudes
+
+from pathlib import Path
+
+def download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geographic_mean(start_date="2016-01-01", end_date="2024-12-31", data_path='../data'):
+
+    output_dir = Path(data_path) / 'open_meteo/historical'
+    
+    latitudes, longitudes = _get_coordinates_of_geographic_mean_and_10_biggest_wind_turbines_by_installed_capacity()
+    download_open_meteo_historical_wind_speeds(start_date, end_date, latitudes, longitudes, output_dir=output_dir, filename="top_10_biggest_wind_parks_50hertz.json")
+
+
+def download_open_meteo_historical_wind_speeds(start_date, end_date, latitudes: str, longitudes: str, output_dir, filename):
+
+    # latitudes and longitudes need to be comma separated
+
+    url = f"https://archive-api.open-meteo.com/v1/archive?latitude={latitudes}&longitude={longitudes}&start_date={start_date}&end_date={end_date}&hourly=wind_speed_10m,wind_speed_100m&wind_speed_unit=ms"
+    print(url)
+    try:
+        # Send a GET request to the URL
+        response = requests.get(url)
+        print(f"Status Code: {response.status_code}\n")  # Check the status code
+        print(f"Response Content: {response.text}")  # Check the actual response
+        
+        # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+                # Parse the JSON data
+                data = response.json()
+                os.makedirs(output_dir, exist_ok=True)
+
+                file_path = os.path.join(output_dir, filename)
+
+                # Save the data to the file
+                with open(file_path, "w") as f:
+                    json.dump(data, f, indent=4)  # Save with pretty indentation
+
+                print(f"Data saved successfully to {file_path}")
+        else:
+                print(f"Failed to retrieve data. Status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")    
+
+        
 
 # Function to download MERRA data for a range of dates
 def download_merra(start_date, end_date, token=None, longitude=13.125, lattitude=53.0, output_dir="../data/merra2/"):
@@ -95,88 +160,7 @@ def download_merra(start_date, end_date, token=None, longitude=13.125, lattitude
         current_date += timedelta(days=1)
 
 
-# Function to download MERRA data for a range of dates
-def download_merra2(start_date, end_date, token=None, longitude=-2.0, lattitude=56, output_dir="../data/merra2_pennmanshiel/merra2/"):
-
-    start_date = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date = datetime.strptime(end_date, "%Y-%m-%d")
-
-    if token is None:
-        from dotenv import load_dotenv
-        load_dotenv()
-        token = os.environ["MERRA_TOKEN"]
-    
-    get_longitude = lambda x: int((x+180)*8/5) # conversion for gesdisc API
-    get_lattitude = lambda y: int(y*2 + 180) # conversion for gesdisc API
-    longitude_coord = longitude
-    lattitude_coord = lattitude
-
-    longitude = get_longitude(longitude)
-    lattitude = get_lattitude(lattitude)
-
-    # Create a session and set up authentication
-    session = requests.Session()
-    session.headers.update({'Authorization': f'Bearer {token}'})
-    
-    # Ensure the output directory exists
-    os.makedirs(output_dir, exist_ok=True)
-
-    # Initialize current_date as start_date
-    current_date = start_date
-
-    # Loop through each date
-    while current_date < end_date:
-        # Format the year, month, and day
-        year = current_date.year
-        month = f"{current_date.month:02d}"
-        day = f"{current_date.day:02d}"
-
-        # Generate the URL based on the template
-
-        def generate_url(suffix = "400"):
-
-            url = f"https://goldsmr4.gesdisc.eosdis.nasa.gov/opendap/hyrax/MERRA2/M2I1NXLFO.5.12.4/{year}/{month}/MERRA2_{suffix}.inst1_2d_lfo_Nx.{year}{month}{day}.nc4?HLML[0:1:23][{lattitude}][{longitude}],QLML[0:1:23][{lattitude}][{longitude}],SPEEDLML[0:1:23][{lattitude}][{longitude}],PS[0:1:23][{lattitude}][{longitude}],TLML[0:1:23][{lattitude}][{longitude}],lat[{lattitude}],lon[{longitude}],time[0:1:23]"
-            #url = f"https://goldsmr4.gesdisc.eosdis.nasa.gov/opendap/MERRA2/M2I1NXLFO.5.12.4/{year}/{month}/MERRA2_{suffix}.inst1_2d_lfo_Nx.{year}{month}{day}.nc4?HLML[0:1:23][{lattitude}][{longitude}],QLML[0:1:23][{lattitude}][{longitude}],SPEEDLML[0:1:23][{lattitude}][{longitude}],PS[0:1:23][{lattitude}][{longitude}],TLML[0:1:23][{lattitude}][{longitude}],lat[{lattitude}],lon[{longitude}],time[0:1:23]"
-
-            return url
-        
-        # Define the output file path
-        output_file = f"{output_dir}/merra2_{longitude_coord}_{lattitude_coord}_{year}_{month}_{day}.nc"
-        
-        # Check if the file already exists
-        if os.path.exists(output_file):
-            print(f"File already exists, skipping download: {output_file}")
-        else:
-            try:
-                
-                try:
-                    url = generate_url()
-                    print(f"Downloading: {url} to {output_file}")
-                    # Use PydapDataStore to open the dataset with authentication
-                    store = xr.backends.PydapDataStore.open(url, session=session)
-                
-                except Exception as e:
-                    url = generate_url(suffix="401")
-                    print(f"Use 401 suffix instead, downloading: {url} to {output_file}")
-                    store = xr.backends.PydapDataStore.open(url, session=session)
-
-
-                # Create an xarray dataset from the opened store
-                ds = xr.open_dataset(store)
-                
-                # Save the dataset to a NetCDF file
-                ds.to_netcdf(output_file)
-                
-                print(f"Saved dataset for {current_date} to {output_file}")
-            
-            except Exception as e:
-                print(f"Failed to process {url}: {e}")
-        
-        # Increment the current_date by 1 day
-        current_date += timedelta(days=1)
-    
-
-def download_zenodo(start_year: int, end_year: int, output_dir="../data/zenodo_turbine_data/raw/"):
+def download_zenodo(start_year: int, end_year: int, output_dir="../data/zenodo_penmanshiel/"):
     # Time period: 2016-06-24 11:40 - 2021-06-30 23:50
     
     # Loop through the range of years specified
@@ -444,66 +428,3 @@ def download_forecast_data(output_dir="../data/weather_forecast/raw"):
         print(f"An error occurred: {e}")
 '''
 
-def _get_coordinates_of_geographic_mean_and_10_biggest_wind_turbines_by_installed_capacity():
-    """
-    Computes the geographic mean (weighted by installed capacity) and retrieves
-    the coordinates of the 10 largest wind turbines by installed capacity.
-
-    Returns:
-        tuple: (latitudes, longitudes) as comma-separated strings.
-    """
-    aggregated_df = get_coordinates_of_grid_operators()
-
-    # Sort by installed_capacity_sum
-    aggregated_df = aggregated_df.sort_values(by='installed_capacity_sum', ascending=False)
-    df = aggregated_df.head(10)
-
-    # Calculate weighted averages
-    weighted_longitude = (aggregated_df['longitude'] * aggregated_df['installed_capacity_sum']).sum() / aggregated_df['installed_capacity_sum'].sum()
-    weighted_latitude = (aggregated_df['latitude'] * aggregated_df['installed_capacity_sum']).sum() / aggregated_df['installed_capacity_sum'].sum()
-
-    # Create latitude and longitude strings
-    longitudes = f"{weighted_longitude}," + ",".join(df['longitude'].astype(str))
-    latitudes = f"{weighted_latitude}," + ",".join(df['latitude'].astype(str))
-
-    return latitudes, longitudes
-
-from pathlib import Path
-
-def download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geographic_mean(start_date="2016-01-01", end_date="2024-12-31", data_path='../data'):
-
-    output_dir = Path(data_path) / 'open_meteo/historical'
-    
-    latitudes, longitudes = _get_coordinates_of_geographic_mean_and_10_biggest_wind_turbines_by_installed_capacity()
-    download_open_meteo_historical_wind_speeds(start_date, end_date, latitudes, longitudes, output_dir=output_dir, filename="top_10_biggest_wind_parks_50hertz.json")
-
-
-def download_open_meteo_historical_wind_speeds(start_date, end_date, latitudes: str, longitudes: str, output_dir, filename):
-
-    # latitudes and longitudes need to be comma separated
-
-    url = f"https://archive-api.open-meteo.com/v1/archive?latitude={latitudes}&longitude={longitudes}&start_date={start_date}&end_date={end_date}&hourly=wind_speed_10m,wind_speed_100m&wind_speed_unit=ms"
-    print(url)
-    try:
-        # Send a GET request to the URL
-        response = requests.get(url)
-        print(f"Status Code: {response.status_code}\n")  # Check the status code
-        print(f"Response Content: {response.text}")  # Check the actual response
-        
-        # Check if the request was successful (status code 200)
-        if response.status_code == 200:
-                # Parse the JSON data
-                data = response.json()
-                os.makedirs(output_dir, exist_ok=True)
-
-                file_path = os.path.join(output_dir, filename)
-
-                # Save the data to the file
-                with open(file_path, "w") as f:
-                    json.dump(data, f, indent=4)  # Save with pretty indentation
-
-                print(f"Data saved successfully to {file_path}")
-        else:
-                print(f"Failed to retrieve data. Status code: {response.status_code}")
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")    

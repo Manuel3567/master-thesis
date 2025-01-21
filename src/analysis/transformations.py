@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def minute_to_daily_50Hertz(df):
+def minute_to_daily(df):
     """Stacks observations of time points in a day as columns,
     such that every observation/row represents a day.
     If a column 'electricity' is available and observations follow a 15min interval,

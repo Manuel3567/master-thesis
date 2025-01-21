@@ -173,48 +173,6 @@ def analyze_wind_speed(combined: pd.DataFrame) -> None:
 
 
 
-import pandas as pd
-
-def process_and_merge_dataframes(wind_park_data, electricity_data):
-    """
-    Processes and merges two dataframes: interpolates wind_park_data, applies minute_to_daily_50Hertz, 
-    filters for "mean" columns, and merges with electricity_data on time index.
-
-    Args:
-        wind_park_data (pd.DataFrame): Wind park data loaded using `load_wind_park_data()`.
-        electricity_data (pd.DataFrame): ENTSO-E data loaded using `load_entsoe()`.
-        minute_to_daily_50Hertz (function): Function to apply to the interpolated wind_park_data.
-
-    Returns:
-        pd.DataFrame: Merged dataframe.
-    """
-    # Step 1: Filter columns containing "mean"
-    wind_park_data_mean = wind_park_data.filter(like="mean")
-    
-    # Step 2: Interpolate wind_park_data_mean from 1-hour intervals to 15-minute intervals
-    wind_park_data_mean.index = pd.to_datetime(wind_park_data_mean.index)  # Ensure index is datetime
-    wind_park_data_interpolated = wind_park_data_mean.resample("15T").interpolate(method="linear")
-    
-    # Step 3: Apply minute_to_daily_50Hertz function
-    wind_park_data_processed = minute_to_daily_50Hertz(wind_park_data_interpolated)
-    
-    # Step 4: Load and process electricity_data (keep only the "onshore" column)
-    electricity_data_processed = electricity_data[["onshore"]].copy()
-    electricity_data_processed = minute_to_daily_50Hertz(electricity_data_processed)
-    electricity_data_processed.index = pd.to_datetime(electricity_data_processed.index)  # Ensure index is datetime
-    
-    # Step 5: Merge the processed dataframes on time index
-    merged_df = pd.merge(
-        wind_park_data_processed,
-        electricity_data_processed,
-        left_index=True,
-        right_index=True,
-        how="inner"
-    )
-    
-    return merged_df
-
-
 def get_columns_by_time(df, time: str):
     time = time.replace(":", "_")
     columns = [c for c in df.columns if c.endswith(time)]

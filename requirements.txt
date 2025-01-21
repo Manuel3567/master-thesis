@@ -24,3 +24,5 @@ WebOb==1.8.9
 ngboost
 catboost
 properscoring
+sktime
+tabpfn
