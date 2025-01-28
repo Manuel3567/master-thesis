@@ -298,6 +298,11 @@ def load_entsoe(data_path: str = "../data"):
     entsoe_raw = load_entsoe_raw(data_path)
     open_meteo = load_open_meteo_historical_wind_speed(data_path)
 
+
+        # Rename and drop "offshore" column
+    entsoe_raw = entsoe_raw.rename(columns={"onshore": "power"})
+    entsoe_raw = entsoe_raw.drop(columns=["offshore"])
+
     entsoe_raw.index = pd.to_datetime(entsoe_raw.index)
     open_meteo.index = pd.to_datetime(open_meteo.index)
 
