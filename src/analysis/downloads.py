@@ -257,7 +257,6 @@ def download_3_months_0day_1day_forecasts_zenodo(output_dir="../data/weather_for
         - Prints an error message if a network issue or any other `RequestException` occurs.
         - Prints a status code error message if the API request fails.
     """
-        
     url = "https://previous-runs-api.open-meteo.com/v1/forecast?latitude=55.90499&longitude=-2.291806&minutely_15=wind_speed_10m,wind_speed_10m_previous_day1,wind_speed_80m,wind_speed_80m_previous_day1,wind_speed_120m,wind_speed_120m_previous_day1,wind_speed_180m,wind_speed_180m_previous_day1&wind_speed_unit=ms&past_days=92&models=best_match"
 
     try:
