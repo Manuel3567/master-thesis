@@ -1,3 +1,8 @@
+run ``pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126`` and then install requirements_gpu for gpu version
+
+
+
+
 # Table of Contents
 1. [Overview](#1-overview)
 2. [Datasets](#2-datasets)
