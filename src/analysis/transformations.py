@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 def minute_to_daily(df):
@@ -70,4 +71,22 @@ def daily_to_minute(df: pd.DataFrame) -> pd.DataFrame:
     df = df.drop(columns=["date", "hour", "minute"])
     new_frequency = int((df.index[1] - df.index[0]).total_seconds() / 60)
     new_shape = df.shape
+    return df
+
+def scale_power_data(df, target_column='power'):
+    """Scales the power data using log transformation."""
+    max_power_value = df[target_column].max()
+    max_power_value_rounded = np.ceil(max_power_value / 1000) * 1000
+    epsilon = 1e-9
+    df[target_column] = np.log(df[target_column] / max_power_value_rounded + epsilon)
+    return df
+
+def add_lagged_features(df, target_column='power', lag=96):
+    """Adds lagged power feature."""
+    df[f'{target_column}_t-{lag}'] = df[target_column].shift(lag)
+    return df
+
+def add_interval_index(df):
+    """Creates an interval index feature based on time."""
+    df['interval_index'] = ((df.index.hour * 60 + df.index.minute) // 15) + 1
     return df

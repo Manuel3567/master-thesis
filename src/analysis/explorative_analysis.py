@@ -1,8 +1,44 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+def explorative_analysis(dataframe):
+    """Perform a full exploratory analysis of the dataframe."""
+    start = dataframe.index.min().date()
+    end = dataframe.index.max().date()
+    print(f"Summary statistics for time frame: {start} - {end}")
+    
+    # Display the first few rows
+    print("First 5 rows of the dataframe:")
+    display(dataframe.head(5))
 
-def calculate_expected_entries(dataframe):
+    # Display the last few rows
+    print("\nLast 5 rows of the dataframe:")
+    display(dataframe.tail())
+
+    # Summary statistics
+    print(f"\nSummary statistics of the dataframe for time frame: {start} - {end}")
+    display(dataframe.describe())
+
+    _calculate_expected_entries(dataframe)
+    
+    # Shape of the dataframe
+    print(f"\nShape of dataframe (rows, columns) for time frame: {start} - {end}")
+    display(dataframe.shape)
+    
+    # Check for duplicates in the index
+    _check_duplicates(dataframe)
+    
+    # Find rows with NaN values
+    dataframe.isna()
+    
+    # Find problematic power ranges
+    _find_problematic_power_ranges(dataframe)
+    
+    # Plot relevant columns (power, wind speed, etc.)
+    _plot_relevant_columns(dataframe, start, end)
+
+
+def _calculate_expected_entries(dataframe):
     """
     Calculate and print the expected and actual number of entries in the DataFrame based on its time index.
 
@@ -48,18 +84,18 @@ def calculate_expected_entries(dataframe):
 
 def get_power_columns(dataframe):
     """Return a list of columns related to power data."""
-    power_columns = [col for col in dataframe.columns if 'Power (kW)' in col or col == 'onshore']
+    power_columns = [col for col in dataframe.columns if 'power' in col]
 
     return power_columns
 
 def get_wind_speed_columns(dataframe):
     """Return a list of columns related to wind speed data."""
-    wind_speed_columns = [col for col in dataframe.columns if col == 'Wind speed (m/s)' or col.startswith('wind_speed_')]
+    wind_speed_columns = [col for col in dataframe.columns if col == 'ws_10m_loc_mean' or col == 'ws_100m_loc_mean']
     print(wind_speed_columns)
     return wind_speed_columns
 
 
-def plot_power_histogram(dataframe, start, end):
+def _plot_power_histogram(dataframe, start, end):
     """Plot histograms and monthly time series for power-related columns."""
 
     power_columns = get_power_columns(dataframe)
@@ -78,7 +114,7 @@ def plot_power_histogram(dataframe, start, end):
         plt.ylabel("Frequency")
         plt.show()
 
-def plot_monthly_power_time_series(dataframe, start, end):
+def _plot_monthly_power_time_series(dataframe, start, end):
         
         power_columns = get_power_columns(dataframe)
 
@@ -97,7 +133,7 @@ def plot_monthly_power_time_series(dataframe, start, end):
             plt.show()
 
 
-def plot_wind_speed_histogram(dataframe, start, end):
+def _plot_wind_speed_histogram(dataframe, start, end):
     """Plot histograms for wind speed-related columns."""
     wind_speed_columns = get_wind_speed_columns(dataframe)
     
@@ -115,7 +151,7 @@ def plot_wind_speed_histogram(dataframe, start, end):
             plt.ylabel("Frequency")
             plt.show()
 
-def plot_wind_speed_time_series(dataframe, start, end):
+def _plot_wind_speed_time_series(dataframe, start, end):
     """Plot time series of wind speed-related columns."""
     wind_speed_columns = get_wind_speed_columns(dataframe)
     
@@ -144,7 +180,7 @@ def get_specific_month_year(dataframe):
     return year, month
 
 
-def plot_power_data_for_specific_month(dataframe):
+def _plot_power_data_for_specific_month(dataframe):
     # Get year and month from user input
     year, month = get_specific_month_year(dataframe)
 
@@ -187,7 +223,7 @@ def plot_power_data_for_specific_month(dataframe):
 
 
 
-def find_problematic_power_ranges(dataframe):
+def _find_problematic_power_ranges(dataframe):
 
     if get_power_columns(dataframe) != None:
         return
@@ -199,82 +235,26 @@ def find_problematic_power_ranges(dataframe):
         return wrong_range
 
 
-def explorative_analysis(dataframe):
-    """Perform a full exploratory analysis of the dataframe."""
-    start = dataframe.index.min().date()
-    end = dataframe.index.max().date()
-    print(f"Summary statistics for time frame: {start} - {end}")
-    
-    # Display the first few rows
-    print("First 5 rows of the dataframe:")
-    display(dataframe.head(5))
-
-    # Display the last few rows
-    print("\nLast 5 rows of the dataframe:")
-    display(dataframe.tail())
-
-    # Summary statistics
-    print(f"\nSummary statistics of the dataframe for time frame: {start} - {end}")
-    display(dataframe.describe())
-
-    calculate_expected_entries(dataframe)
-    
-    # Shape of the dataframe
-    print(f"\nShape of dataframe (rows, columns) for time frame: {start} - {end}")
-    display(dataframe.shape)
-    
-    # Check for duplicates in the index
-    check_duplicates(dataframe)
-    
-    # Find rows with NaN values
-    find_nan_powers(dataframe)
-    
-    # Find problematic power ranges
-    find_problematic_power_ranges(dataframe)
-    
-    # Plot relevant columns (power, wind speed, etc.)
-    plot_relevant_columns(dataframe, start, end)
-
-
-def plot_relevant_columns(dataframe, start, end):
+def _plot_relevant_columns(dataframe, start, end):
     """Coordinates the plotting of power, wind speed, and specific-month data."""
     # Check if wind data exists and plot
     wind_speed_columns = get_wind_speed_columns(dataframe)
     if wind_speed_columns:
         print("\nPlotting wind speed data...")
-        plot_wind_speed_histogram(dataframe, start, end)
-        plot_wind_speed_time_series(dataframe, start, end)
+        _plot_wind_speed_histogram(dataframe, start, end)
+        _plot_wind_speed_time_series(dataframe, start, end)
     
     # Check if power data exists and plot
     power_columns = get_power_columns(dataframe)
     if power_columns:
         print("\nPlotting power data...")
-        plot_power_histogram(dataframe, start, end)
-        plot_monthly_power_time_series(dataframe, start, end)
-        plot_power_data_for_specific_month(dataframe)
+        _plot_power_histogram(dataframe, start, end)
+        _plot_monthly_power_time_series(dataframe, start, end)
+        _plot_power_data_for_specific_month(dataframe)
 
 
 
-
-
-def find_nan_powers(dataframe):
-    start = dataframe.index.min()
-    end = dataframe.index.max()
-  # Find rows with NaN values
-    columns_to_check = ["Power (kW)", "onshore", "Wind speed (m/s)", "wind_speed_10m", "wind_speed_80m", "wind_speed_120m"]
-
-    for col in columns_to_check:
-        if col in dataframe.columns:  # Check if the column exists in the dataframe
-            nan_count = dataframe[col].isna().sum()  # Count NaN values in the column
-            print(f"\nRows with NaN values for {col}:")
-            nan_rows = dataframe[col].isna()  # Get rows where NaN is present
-            print(f"In total there are: {nan_count} NaN values for time frame {start} - {end}")
-
-            nan_entries = dataframe[nan_rows]  # Filter the rows where NaN is present
-            display(nan_entries)
-
-
-def check_duplicates(dataframe):
+def _check_duplicates(dataframe):
     """Check and display duplicate indices."""
     duplicate_indices = dataframe.index.duplicated()
     if duplicate_indices.any():
