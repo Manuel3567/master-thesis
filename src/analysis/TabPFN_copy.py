@@ -308,7 +308,7 @@ def evaluate(quantiles, probabilities, y, y_min, y_max):
         y_max (float): Maximum y value for integration.
 
     Returns:
-        tuple: Linear CRPS, Hybrid CRPS, Linear NLL, Hybrid NLL.
+        tuple: Linear CRPS, Hybrid CRPS, normal CRPS, Linear NLL, Hybrid NLL, and normal NLL.
     """
     
     # Compute interpolation functions (CDFs and PDFs)

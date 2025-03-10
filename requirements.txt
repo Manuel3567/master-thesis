@@ -26,3 +26,4 @@ catboost
 properscoring
 sktime
 tabpfn
+torchinfo
