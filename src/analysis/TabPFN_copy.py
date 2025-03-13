@@ -166,7 +166,7 @@ def train_tabpfn_model(
     return X_validation, y_validation, quantiles_custom, all_quantiles
 
 
-def compute_cdf_pdf_interpolators(quantiles, probabilities, y_min=-30, y_max=30):
+def compute_cdf_pdf_interpolators(quantiles, probabilities, y_min=-30, y_max=30, mu_left_asym=-1.72, sigma_left_asym=1.45, mu_right_asym=-1.65, sigma_right_asym=0.79):
     """
     Returns interpolation functions for CDF and PDF using linear, PCHIP, and hybrid methods.
 
@@ -184,9 +184,14 @@ def compute_cdf_pdf_interpolators(quantiles, probabilities, y_min=-30, y_max=30)
     - pdf_pchip(x): PCHIP derivative PDF function.
     - pdf_hybrid(x): Hybrid PDF (PCHIP + normal tails) with a minimum sigma left.
     """
-    sigma_left_min = 0.2
-    sigma_right_min = 0.2
-    lambda_val  = 1.
+    sigma_left_min = sigma_left_asym
+    sigma_right_min = sigma_right_asym
+    mu_left_min = mu_left_asym
+    mu_right_min = mu_right_asym
+
+    lambda_val  = 1.5
+    lambda_val_R  = 4.
+
     # Extend quantile and probability arrays
     full_quantiles = np.concatenate(([y_min], quantiles, [y_max]))
     full_probabilities = np.concatenate(([0], probabilities, [1]))
@@ -228,15 +233,19 @@ def compute_cdf_pdf_interpolators(quantiles, probabilities, y_min=-30, y_max=30)
         - Right normal fit for x > last quantile
         """
         if x < quantiles[0]:  # Left tail
-            adjusted_sigma_left = sigma_left
-            if sigma_left < sigma_left_min:
-                 adjusted_sigma_left = sigma_left_min + (sigma_left - sigma_left_min) * np.exp((x - quantiles[0]) / lambda_val)
-            return norm.cdf(x, loc=mu_left, scale=adjusted_sigma_left)
+            #adjusted_sigma_left = sigma_left
+            #if sigma_left < sigma_left_min:
+            adjusted_sigma_left = sigma_left_min + (sigma_left - sigma_left_min) * np.exp(- np.abs((x - quantiles[0])) / lambda_val)
+            adjusted_mu_left = mu_left_min + (mu_left - mu_left_min) * np.exp(- np.abs((x - quantiles[0])) / lambda_val)
+            return norm.cdf(x, loc=adjusted_mu_left, scale=adjusted_sigma_left)
+        
         elif x > quantiles[-1]:  # Right tail
-            adjusted_sigma_right = sigma_right
-            if sigma_right < sigma_right_min:
-                 adjusted_sigma_right = sigma_right_min + (sigma_right - sigma_right_min) * np.exp( - (x - quantiles[-1]) / lambda_val)            
-            return norm.cdf(x, loc=mu_right, scale=adjusted_sigma_right)
+            #adjusted_sigma_right = sigma_right
+            #if sigma_right < sigma_right_min:
+            adjusted_sigma_right = sigma_right_min + (sigma_right - sigma_right_min) * np.exp(- np.abs((x - quantiles[-1])) / lambda_val_R)   
+            adjusted_mu_right = mu_right_min + (mu_right - mu_right_min) * np.exp(- np.abs((x - quantiles[-1])) / lambda_val_R)
+            return norm.cdf(x, loc=adjusted_mu_right, scale=adjusted_sigma_right)
+        
         else:  # Middle range (PCHIP interpolation)
             return float(np.clip(cdf_pchip_interpolator(x), 0, 1))
 
@@ -268,21 +277,43 @@ def compute_cdf_pdf_interpolators(quantiles, probabilities, y_min=-30, y_max=30)
         - Left normal distribution for (x < first quantile) based on first two quantiles
         - PCHIP interpolation derivative for middle range
         - Right normal distribution for (x > last quantile) based on last two quantiles
-        """        
+        """
+        # nach vorne den Teil        
         if x < quantiles[0]:  # Left tail
-            adjusted_sigma_left = sigma_left
-            if sigma_left < sigma_left_min:
-                 adjusted_sigma_left = sigma_left_min + (sigma_left - sigma_left_min) * np.exp((x - quantiles[0]) / lambda_val)
-            return norm.pdf(x, loc=mu_left, scale=adjusted_sigma_left)
+            adjusted_sigma_left = sigma_left_min + (sigma_left - sigma_left_min) * np.exp(- np.abs((x - quantiles[0])) / lambda_val)
+            adjusted_mu_left = mu_left_min + (mu_left - mu_left_min) * np.exp(- np.abs((x - quantiles[0])) / lambda_val)
+            pdf_value_L = norm.pdf(x, loc=adjusted_mu_left, scale=adjusted_sigma_left)
+            return pdf_value_L
+        
         elif x > quantiles[-1]:  # Right tail
-            adjusted_sigma_right = sigma_right
-            if sigma_right < sigma_right_min:
-                 adjusted_sigma_right = sigma_right_min + (sigma_right - sigma_right_min) * np.exp( - (x - quantiles[-1]) / lambda_val)            
-            return norm.pdf(x, loc=mu_right, scale=adjusted_sigma_right)
-        else:  # Middle range (PCHIP interpolation)
-            eps = max(min_delta_quantile / 2, 1e-8)  # Avoid zero or extremely small eps
+            adjusted_sigma_right = sigma_right_min + (sigma_right - sigma_right_min) * np.exp(- np.abs((x - quantiles[-1])) / lambda_val_R)   
+            adjusted_mu_right = mu_right_min + (mu_right - mu_right_min) * np.exp(- np.abs((x - quantiles[-1])) / lambda_val_R)
+            pdf_value_R = norm.pdf(x, loc=adjusted_mu_right, scale=adjusted_sigma_right)
+            return pdf_value_R
+         
+        elif x > (quantiles[-2] + quantiles[-1])/2:  # Right tail
+            adjusted_sigma_right = sigma_right_min + (sigma_right - sigma_right_min) * np.exp(- np.abs((x - quantiles[-1])) / lambda_val_R)   
+            adjusted_mu_right = mu_right_min + (mu_right - mu_right_min) * np.exp(- np.abs((x - quantiles[-1])) / lambda_val_R)
+            pdf_value_R = norm.pdf(x, loc=adjusted_mu_right, scale=adjusted_sigma_right)
+            eps = max(min_delta_quantile / 2, 1e-5)  # Avoid zero or extremely small eps
             #return cdf_pchip_interpolator.derivative()(x)
-            return (cdf_pchip_interpolator(x + eps) - cdf_pchip_interpolator(x - eps)) / (2 * eps) 
+            pdf_value_M = (cdf_pchip_interpolator(x + eps) - cdf_pchip_interpolator(x - eps)) / (2 * eps) 
+            return np.max([pdf_value_R, pdf_value_M])
+              
+        elif x < (quantiles[0] + quantiles[1])/2:  # Left tail
+            adjusted_sigma_left = sigma_left_min + (sigma_left - sigma_left_min) * np.exp(- np.abs((x - quantiles[0])) / lambda_val)
+            adjusted_mu_left = mu_left_min + (mu_left - mu_left_min) * np.exp(- np.abs((x - quantiles[0])) / lambda_val)
+            pdf_value_L = norm.pdf(x, loc=adjusted_mu_left, scale=adjusted_sigma_left)
+            eps = max(min_delta_quantile / 2, 1e-5)  # Avoid zero or extremely small eps
+            #return cdf_pchip_interpolator.derivative()(x)
+            pdf_value_M = (cdf_pchip_interpolator(x + eps) - cdf_pchip_interpolator(x - eps)) / (2 * eps) 
+            return np.max([pdf_value_L, pdf_value_M])
+        
+        else:  # Middle range (PCHIP interpolation)
+            eps = max(min_delta_quantile / 2, 1e-5)  # Avoid zero or extremely small eps
+            #return cdf_pchip_interpolator.derivative()(x)
+            pdf_value_M = (cdf_pchip_interpolator(x + eps) - cdf_pchip_interpolator(x - eps)) / (2 * eps) 
+            return pdf_value_M
 
     return cdf_linear, cdf_pchip, hybrid_cdf, pdf_linear, pdf_linear2, pdf_pchip, pdf_hybrid
 
@@ -296,7 +327,7 @@ def fit_tail_distribution(quantiles, probabilities):
 
 
 
-def evaluate(quantiles, probabilities, y, y_min, y_max):
+def evaluate(quantiles, probabilities, y, y_min, y_max, mu_left_asym, sigma_left_asym, mu_right_asym, sigma_right_asym):
     """
     Evaluates CRPS and NLL for a single y value, storing results for only linear and hybrid methods.
 
@@ -313,7 +344,7 @@ def evaluate(quantiles, probabilities, y, y_min, y_max):
     
     # Compute interpolation functions (CDFs and PDFs)
     cdf_linear, _, hybrid_cdf, pdf_linear, _, _, pdf_hybrid = compute_cdf_pdf_interpolators(
-        quantiles, probabilities, y_min, y_max
+        quantiles, probabilities, y_min, y_max, mu_left_asym, sigma_left_asym, mu_right_asym, sigma_right_asym
     )
 
     # Compute CRPS for linear and hybrid CDF methods
@@ -391,7 +422,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 
-def plot_cdf_pdf_dynamic(quantiles, probabilities, y_min, y_max, log_scale=True, eps=0.01, case=1):
+def plot_cdf_pdf_dynamic(ax, quantiles, probabilities, y_min, y_max, x_lim, y_lim, log_scale, eps=0.01, case=1, mu_left_asym=-1.72, sigma_left_asym=1.45, mu_right_asym=-1.65, sigma_right_asym=0.79):
     """Plots the CDF and PDF for linear, cubic interpolation, and hybrid interpolation (cubic + normal tails) methods.
     - case 1: CDF of linear, cubic, gaussian between the quantiles, PDF of Linear Interpolation epsilon=0.01, Linear Interpolation epsilon=min_delta_quantile/2, cubic interpolation, gaussian interpolation
     - case 2: CDF of linear, linear y_min={y_min - y_min_shift}, cubic interpolation, cubic + normal tails, gaussian interpolation beyond range of quantiles, PDF of linear Interpolation epsilon=0.01, y_min={y_min - y_min_shift}, Gaussian interpolation beyond range of quantiles
@@ -402,12 +433,12 @@ def plot_cdf_pdf_dynamic(quantiles, probabilities, y_min, y_max, log_scale=True,
 
     # Get CDF and PDF functions
     cdf_linear, cdf_pchip, hybrid_cdf, pdf_linear, pdf_linear2, pdf_pchip, pdf_hybrid = compute_cdf_pdf_interpolators(
-        quantiles, probabilities, y_min, y_max
+        quantiles, probabilities, y_min, y_max, mu_left_asym, sigma_left_asym, mu_right_asym, sigma_right_asym
     )
 
     y_min_shift = 1
     cdf_linear_m, cdf_pchip_m, hybrid_cdf_m, pdf_linear_m, pdf_linear2_m, pdf_pchip_m, pdf_hybrid_m = compute_cdf_pdf_interpolators(
-    quantiles, probabilities, y_min - y_min_shift, y_max + y_min_shift
+    quantiles, probabilities, y_min - y_min_shift, y_max + y_min_shift, mu_left_asym, sigma_left_asym, mu_right_asym, sigma_right_asym
     )
     
     mu, sigma = fit_normal_dist_to_quantiles(quantiles, probabilities)
@@ -426,9 +457,6 @@ def plot_cdf_pdf_dynamic(quantiles, probabilities, y_min, y_max, log_scale=True,
             "Pchip Interpolation": (np.array([cdf_pchip(x) for x in x_values]), "orange", "-"),
             "Gaussian interpolation": (norm.cdf(x_values, loc=mu, scale=sigma), "green", "--")
         }
-
-
-
         
         #for label, values in cdf_values.items():
         #    plt.plot(x_values, values, label=label)
@@ -439,7 +467,7 @@ def plot_cdf_pdf_dynamic(quantiles, probabilities, y_min, y_max, log_scale=True,
         plt.scatter(quantiles, probabilities, color='y', marker='o', label="Quantiles")
         plt.legend()
         plt.grid(True)
-        plt.show()
+        #plt.show()
 
 
         plt.figure(figsize=(11, 6))
@@ -464,7 +492,7 @@ def plot_cdf_pdf_dynamic(quantiles, probabilities, y_min, y_max, log_scale=True,
         print(f"Quantiles: {quantiles}, PDFs: {np.array([pdf_pchip(q) for q in quantiles])}")
         plt.legend(loc='upper right', bbox_to_anchor=(1.18, 1.0))
         plt.grid(True)
-        plt.show()
+        #plt.show()
 
     elif case == 2:
 
@@ -472,6 +500,8 @@ def plot_cdf_pdf_dynamic(quantiles, probabilities, y_min, y_max, log_scale=True,
         #plt.xlim(-4, 4)
         plt.xlabel("Value")
         plt.ylabel("Cumulative Probability")
+        plt.yscale("log")
+        plt.ylim(1e-5)
         plt.title("CDF Estimation of one set of quantiles of TabPFN with different interpolation methods")
 
         cdf_values = {
@@ -489,7 +519,7 @@ def plot_cdf_pdf_dynamic(quantiles, probabilities, y_min, y_max, log_scale=True,
         plt.scatter(quantiles, probabilities, color='y', marker='o', label="Quantiles")
         plt.legend()
         plt.grid(True)
-        plt.show()
+        #plt.show()
 
         pdf_values = {
         f"Linear Interpolation epsilon=0.01, y_min={y_min}": (np.array([pdf_linear(x) for x in x_values]), "blue", "-"),
@@ -508,34 +538,102 @@ def plot_cdf_pdf_dynamic(quantiles, probabilities, y_min, y_max, log_scale=True,
         plt.scatter(quantiles, [pdf_linear(q) for q in quantiles], color='blue', marker='x', label="Linear PDF at Quantiles")
         plt.legend()
         plt.grid(True)
-        plt.show()
+        #plt.show()
 
 
     elif case == 3:
+        ax.set_xlim(x_lim)  # Use externally defined limits
+        ax.set_ylim(y_lim)  
+        ax.set_xlabel("Value")
+        ax.set_ylabel("Probability Density")
+        ax.set_title("PDF Estimation of One Set of Quantiles")
+        ax.set_yscale(log_scale)
+        #ax.set_yscale("log")
+
+
         # Case 3
-        plt.figure(figsize=(11, 6))
-        #plt.xlim(-4.5, 4.5)
-        plt.xlabel("Value")
-        plt.ylabel("Probability Density")
-        plt.title("PDF Estimation of one set of quantiles of TabPFN with different interpolation methods")
+        #plt.figure(figsize=(11, 6))
+        #plt.xlim(-3, 0)
+        #plt.xlabel("Value")
+        #plt.ylabel("Probability Density")
+        #plt.title("PDF Estimation of one set of quantiles of TabPFN with different interpolation methods")
+        #plt.yscale("log")
 
         pdf_values = {
-        "Pchip Interpolation": (np.array([pdf_pchip(x) for x in x_values]), "orange", "-"),
-        "Pchip Interpolation + Normal Tails Interpolation": (np.array([pdf_hybrid(x) for x in x_values]), "red", "-"),
-        "Gaussian interpolation": (norm.pdf(x_values, loc=mu, scale=sigma), "green", "--")
+        #"Pchip Interpolation": (np.array([pdf_pchip(x) for x in x_values]), "orange", "-"),
+        "Pchip Interpolation + Normal Tails Interpolation": (np.array([pdf_hybrid(x) for x in x_values]), "black", "-"),
+        #"Gaussian interpolation": (norm.pdf(x_values, loc=mu, scale=sigma), "green", "--")
         }
 
         for label, (values, color, linestyle) in pdf_values.items():
-            plt.plot(x_values, values, label=label, color=color, linestyle=linestyle, linewidth=1.3)
+            ax.plot(x_values, values, label=label, color=color, linestyle=linestyle, linewidth=1.3)
 
-        plt.scatter(quantiles, [pdf_hybrid(q) for q in quantiles], color='r', marker='x', label="Pchip interpolation+ normal tails pdf at quantiles")
+        ax.scatter(quantiles, [pdf_hybrid(q) for q in quantiles], color='black', marker='x', label="Pchip interpolation + normal tails pdf at quantiles")
 
-        plt.legend()
-        plt.grid(True)
-        plt.show()
+        ax.legend()
+        ax.grid(True)
+        #plt.show()
 
+import torch
+import numpy as np
+import scipy.interpolate as spi
+import matplotlib.pyplot as plt
 
+def plot_pdf_from_logits(ax, logits, borders, x_lim, y_lim, log_scale, id=0):
+     
 
+    # Assuming logits_2 is a tensor of shape (N, 5000)
+    probs_t = torch.softmax(logits, dim=1)  # Convert logits to probabilities (N, 5000)
+    probs_np = probs_t[id, :].cpu().numpy()  # Convert first sample to NumPy (1D array)
+
+    # Convert bin borders to NumPy if necessary
+    borders_np = borders.cpu().numpy() if isinstance(borders, torch.Tensor) else np.array(borders)
+
+    # Compute bin widths (size 5000)
+    bin_widths = np.diff(borders_np)  # Difference between consecutive bin edges
+
+    # Compute PDF values (divide probability mass by bin width)
+    pdf_values = probs_np / bin_widths  # Element-wise division
+
+    # Compute bin midpoints
+    midpoints = (borders_np[:-1] + borders_np[1:]) / 2  # Midpoints of bins
+
+    # Create an interpolation function using midpoints
+    pdf_function_linear = spi.interp1d(
+    midpoints, pdf_values, kind='linear', fill_value="extrapolate", bounds_error=False
+    )
+
+    pdf_function_pchip = spi.CubicSpline(
+    midpoints, pdf_values, extrapolate=True)
+
+    # Generate x values for plotting
+    x_plot = np.linspace(midpoints[0], midpoints[-1], 5000)  # Smooth x range
+    y_plot = pdf_function_pchip(x_plot)  # Evaluate the PDF function
+    y_plot_2 = pdf_function_linear(x_plot)  # Evaluate the PDF function
+
+    # Plot the PDF
+    ax.set_xlim(x_lim)  # Use externally defined limits
+    ax.set_ylim(y_lim)  
+    ax.plot(x_plot, y_plot, label="Interpolated PDF (cubic) for 5000 logits", color="blue")
+    ax.plot(x_plot, y_plot_2, label="Interpolated PDF (linear) for 5000 logits", color="orange")
+    ax.scatter(midpoints, pdf_values, color="red", s=5, label="Original PDF Points at 5000 logits")  
+    ax.legend(loc='upper right', fontsize=10, frameon=True)
+    #ax.set_yscale("log")
+    ax.set_yscale(log_scale)
+
+    #plt.figure(figsize=(11, 6))
+    #ax.plot(x_plot, y_plot, label="Interpolated PDF (cubic) for 5000 logits")
+    #ax.plot(x_plot, y_plot_2, label="Interpolated PDF (linear) for 5000 logits")
+    #ax.scatter(midpoints, pdf_values, s=5, label="Original PDF Points at 5000 logits")  # Show original data
+    #ax.legend()
+
+    #ax.set_xlabel("x")
+    #ax.set_yscale("log")
+    #ax.set_xlim(-3, 0)
+    #ax.set_ylabel("PDF")
+    #ax.set_title("Probability Density Function (PDF) using Bin Midpoints")
+    #ax.grid(True)
+    #plt.show()
 
 
 

@@ -78,7 +78,7 @@ def scale_power_data(df, target_column='power'):
     max_power_value = df[target_column].max()
     max_power_value_rounded = np.ceil(max_power_value / 1000) * 1000
     #epsilon = 1e-9
-    epsilon = 1e-5
+    epsilon = 1e-3
     df[target_column] = np.log(df[target_column] / max_power_value_rounded + epsilon)
     return df
 
