@@ -196,6 +196,9 @@ def compute_cdf_pdf_interpolators(quantiles, probabilities, y_min=-30, y_max=30,
     full_quantiles = np.concatenate(([y_min], quantiles, [y_max]))
     full_probabilities = np.concatenate(([0], probabilities, [1]))
 
+    #print("full quantiles:", full_quantiles)
+    #print("full probabilities:", full_probabilities)
+
     # --- Calculate minimum difference between consecutive quantiles ---
     delta_quantiles = np.diff(quantiles)
     min_delta_quantile = np.min(delta_quantiles)
@@ -422,7 +425,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 
-def plot_cdf_pdf_dynamic(ax, quantiles, probabilities, y_min, y_max, x_lim, y_lim, log_scale, eps=0.01, case=1, mu_left_asym=-1.72, sigma_left_asym=1.45, mu_right_asym=-1.65, sigma_right_asym=0.79):
+def plot_cdf_pdf_dynamic(ax, quantiles, probabilities, y_min, y_max, x_lim, y_lim, title, log_scale, eps=0.01, case=1, mu_left_asym=-1.72, sigma_left_asym=1.45, mu_right_asym=-1.65, sigma_right_asym=0.79):
     """Plots the CDF and PDF for linear, cubic interpolation, and hybrid interpolation (cubic + normal tails) methods.
     - case 1: CDF of linear, cubic, gaussian between the quantiles, PDF of Linear Interpolation epsilon=0.01, Linear Interpolation epsilon=min_delta_quantile/2, cubic interpolation, gaussian interpolation
     - case 2: CDF of linear, linear y_min={y_min - y_min_shift}, cubic interpolation, cubic + normal tails, gaussian interpolation beyond range of quantiles, PDF of linear Interpolation epsilon=0.01, y_min={y_min - y_min_shift}, Gaussian interpolation beyond range of quantiles
@@ -545,11 +548,12 @@ def plot_cdf_pdf_dynamic(ax, quantiles, probabilities, y_min, y_max, x_lim, y_li
         ax.set_xlim(x_lim)  # Use externally defined limits
         ax.set_ylim(y_lim)  
         ax.set_xlabel("Value")
-        ax.set_ylabel("Probability Density")
-        ax.set_title("PDF Estimation of One Set of Quantiles")
+        ax.set_ylabel("Probability Density (log)")
+        #ax.set_title("PDF Estimation of One Set of Quantiles")
+        ax.set_title(title)
+
         ax.set_yscale(log_scale)
         #ax.set_yscale("log")
-
 
         # Case 3
         #plt.figure(figsize=(11, 6))
@@ -568,7 +572,7 @@ def plot_cdf_pdf_dynamic(ax, quantiles, probabilities, y_min, y_max, x_lim, y_li
         for label, (values, color, linestyle) in pdf_values.items():
             ax.plot(x_values, values, label=label, color=color, linestyle=linestyle, linewidth=1.3)
 
-        ax.scatter(quantiles, [pdf_hybrid(q) for q in quantiles], color='black', marker='x', label="Pchip interpolation + normal tails pdf at quantiles")
+        ax.scatter(quantiles, [pdf_hybrid(q) for q in quantiles], color='black', marker='x', s=80, label="Pchip interpolation + Normal tails pdf at quantiles")
 
         ax.legend()
         ax.grid(True)
@@ -617,7 +621,7 @@ def plot_pdf_from_logits(ax, logits, borders, x_lim, y_lim, log_scale, id=0):
     ax.plot(x_plot, y_plot, label="Interpolated PDF (cubic) for 5000 logits", color="blue")
     ax.plot(x_plot, y_plot_2, label="Interpolated PDF (linear) for 5000 logits", color="orange")
     ax.scatter(midpoints, pdf_values, color="red", s=5, label="Original PDF Points at 5000 logits")  
-    ax.legend(loc='upper right', fontsize=10, frameon=True)
+    ax.legend(loc='best', fontsize=8)
     #ax.set_yscale("log")
     ax.set_yscale(log_scale)
 
