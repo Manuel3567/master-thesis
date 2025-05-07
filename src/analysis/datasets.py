@@ -244,7 +244,6 @@ def load_open_meteo_historical_wind_speed(data_path="../data/"):
     #    "wind_speed_100m_52.40773_12.523191": "ws_100m_mean"
     #})
 
-    print(f"Data loaded and transformed successfully. Shape of DataFrame: {pivoted_df.shape}")
     return pivoted_df
 
 
@@ -299,8 +298,9 @@ def load_entsoe(data_path: str = "../data"):
     open_meteo = load_open_meteo_historical_wind_speed(data_path)
 
 
-        # Rename and drop "offshore" column
+    # Rename and drop "offshore" column
     entsoe_raw = entsoe_raw.rename(columns={"onshore": "power"})
+    #print("removing offshore column...")
     entsoe_raw = entsoe_raw.drop(columns=["offshore"])
 
     entsoe_raw.index = pd.to_datetime(entsoe_raw.index)
@@ -317,10 +317,8 @@ def load_entsoe(data_path: str = "../data"):
         right_index=True, 
         how='inner'  # Adjust join type if necessary (e.g., 'outer', 'left', 'right')
     )
-    
+
     return merged_df
-
-
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------

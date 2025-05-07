@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from analysis.datasets import load_entsoe
-from analysis.transformations import minute_to_daily
-from analysis.splits import to_train_validation_test_data
+from analysis.transformations_old import minute_to_daily
+from analysis.splits_old import to_train_validation_test_data
 from ngboost import NGBRegressor
 from sklearn.metrics import mean_squared_error
 from ngboost.scores import LogScore, CRPScore

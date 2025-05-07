@@ -5,8 +5,8 @@ from scipy.interpolate import Akima1DInterpolator
 from scipy.stats import norm
 from scipy.optimize import curve_fit
 from scipy.integrate import quad
-from analysis.splits import to_train_validation_test_data
-from analysis.transformations import scale_power_data, add_lagged_features, add_interval_index
+from analysis.splits_old import to_train_validation_test_data
+from analysis.transformations_old import scale_power_data, add_lagged_features, add_interval_index
 from tabpfn import TabPFNRegressor
 from scipy.integrate import quad
 import numpy as np
@@ -330,7 +330,7 @@ def fit_tail_distribution(quantiles, probabilities):
 
 
 
-def evaluate(quantiles, probabilities, y, y_min, y_max, mu_left_asym, sigma_left_asym, mu_right_asym, sigma_right_asym):
+def compute_crps_nll_9_quantiles(quantiles, probabilities, y, y_min, y_max, mu_left_asym, sigma_left_asym, mu_right_asym, sigma_right_asym):
     """
     Evaluates CRPS and NLL for a single y value, storing results for only linear and hybrid methods.
 
@@ -586,21 +586,29 @@ import matplotlib.pyplot as plt
 def plot_pdf_from_logits(ax, logits, borders, x_lim, y_lim, log_scale, id=0):
      
 
-    # Assuming logits_2 is a tensor of shape (N, 5000)
+    # Assuming logits is a tensor of shape (N, 5000)
     probs_t = torch.softmax(logits, dim=1)  # Convert logits to probabilities (N, 5000)
     probs_np = probs_t[id, :].cpu().numpy()  # Convert first sample to NumPy (1D array)
-
+    probs_np = probs_np.squeeze()
+    print("probs_np shape:", probs_np.shape)  # Should be (5000,)
+    
     # Convert bin borders to NumPy if necessary
     borders_np = borders.cpu().numpy() if isinstance(borders, torch.Tensor) else np.array(borders)
+    borders_np = borders_np.squeeze()
+    print(borders_np)
+    print("borders_np shape:", borders_np.shape)  # Should be (5001,)
 
     # Compute bin widths (size 5000)
     bin_widths = np.diff(borders_np)  # Difference between consecutive bin edges
-
+    print("bin_widths shape:", bin_widths.shape)  # Should be (5000,)
+    print(bin_widths)
     # Compute PDF values (divide probability mass by bin width)
     pdf_values = probs_np / bin_widths  # Element-wise division
+    print("pdf_values shape:", pdf_values.shape)  # Should be (5000,)
 
     # Compute bin midpoints
     midpoints = (borders_np[:-1] + borders_np[1:]) / 2  # Midpoints of bins
+    print("midpoints shape:", midpoints.shape)  # Should be (5000,)
 
     # Create an interpolation function using midpoints
     pdf_function_linear = spi.interp1d(
@@ -611,7 +619,8 @@ def plot_pdf_from_logits(ax, logits, borders, x_lim, y_lim, log_scale, id=0):
     midpoints, pdf_values, extrapolate=True)
 
     # Generate x values for plotting
-    x_plot = np.linspace(midpoints[0], midpoints[-1], 5000)  # Smooth x range
+    #x_plot = np.linspace(midpoints[0], midpoints[-1], 5000)  # Smooth x range
+    x_plot = midpoints
     y_plot = pdf_function_pchip(x_plot)  # Evaluate the PDF function
     y_plot_2 = pdf_function_linear(x_plot)  # Evaluate the PDF function
 
@@ -641,7 +650,88 @@ def plot_pdf_from_logits(ax, logits, borders, x_lim, y_lim, log_scale, id=0):
 
 
 
+def plot_pdf_smoothed_with_moving_average(logits: torch.Tensor, borders: np.ndarray, window_size: int, id: int, case: int, y_scale: str):
+    """
+    Plots a smoothed probability density function (PDF) using 5000 logits and 5001 borders with a moving average filter
+
+    Args:
+        logits (torch.Tensor): Logits tensor of shape (N, 5000). If not a tensor, it is converted.
+        borders (np.ndarray): Array containing bin edges for histogram-based probability estimation, of length 5001.
+        window_size (int): Window size for the moving average filter.
+        id (int): Index of the sample to plot (must be in range [0, N-1]).
+        case (int): Determines which section of the plot to zoom into:
+            - 2: Peak region (-3 to -2)
+            - 3: Left tail (-4.5 to -3.5)
+            - 4: Right tail (-1.5 to -0.5)
+        y_scale (str): Scale for the y-axis (e.g., "linear", "log").
+    """
+
+    if not isinstance(logits, torch.Tensor):
+        logits = torch.tensor(logits)  # Convert to tensor if it's not already
+
+    num_rows = logits.shape[0]  # Get the number of rows in the logits tensor
+
+    if not (0 <= id < num_rows):
+        raise ValueError(f"Invalid 'id'. It must be between 0 and {num_rows - 1}, inclusive.")
+
+    # Assuming logits is a tensor of shape (N, 5000)
+    probs_t = torch.softmax(logits, dim=1)  # Convert logits to probabilities (N, 5000)
+    probs_np = probs_t[id, :].cpu().numpy()  # Convert first sample to NumPy (1D array)
+
+    bin_widths = np.diff(borders.squeeze().T)  # Difference between consecutive bin edges
+
+    pdf_values = probs_np / bin_widths
+    pdf_values = pdf_values.ravel() # np.convolve expects the array to be 1D
+
+    borders_np = borders.squeeze()
+    midpoints = (borders_np[:-1] + borders_np[1:]) / 2  # (5000,)
+
+    # Apply moving average with a window size of 2 (example)
+    window = np.ones(window_size) / window_size  # Box filter (uniform weights)
+
+    smoothed_pdf = np.convolve(pdf_values, window, mode='same')
+
+    pdf_peak_start = -3
+    pdf_peak_end = -2
+
+    pdf_left_min = -4.5
+    pdf_left_max = -3.5
+
+    pdf_right_min = -1.5
+    pdf_right_max = -0.5
 
 
+    plt.figure(figsize=(8, 5))
+    plt.xlim(-5,0)
+    plt.yscale(y_scale)
 
+    #plt.vlines(pdf_left_min, 1e-9, 1e1, colors="green", linestyles="--")
+    #plt.vlines(pdf_left_max, 1e-9, 1e1, colors="green", linestyles="--")
 
+    #plt.vlines(pdf_peak_start, 1e-9, 1e1, colors="purple", linestyles="--")
+    #plt.vlines(pdf_peak_end, 1e-9, 1e1, colors="purple", linestyles="--")
+
+    #plt.vlines(pdf_right_min, 1e-9, 1e1, colors="blue", linestyles="--")
+    #plt.vlines(pdf_right_max, 1e-9, 1e1, colors="blue", linestyles="--")
+
+    if case == 2:
+        print(f"zooming into peak ({pdf_peak_start} to {pdf_peak_end})")
+        plt.ylim(2e-2, 5e0)
+        plt.xlim(pdf_peak_start, pdf_peak_end)
+
+    if case == 3:
+        print(f"zooming into the left side ({pdf_left_min} to {pdf_left_max})")
+        plt.xlim(pdf_left_min, pdf_left_max)
+
+    if case == 4:
+        print(f"zooming into the right side ({pdf_right_min} to {pdf_right_max})")
+        plt.xlim(pdf_right_min, pdf_right_max)
+
+    plt.plot(midpoints, smoothed_pdf, label=f"Smoothed PDF (window={window_size})", color="blue")
+    plt.scatter(midpoints, pdf_values, color="red", s=5, label="Original PDF Points")  # Scatter for raw values
+    plt.xlabel("x (Midpoints of bins)")
+    plt.ylabel("PDF Value (log scale)")
+    plt.title("Smoothed conditional PDF of y | x from 5000 logits for one entry in validation dataset")
+    plt.legend()
+    plt.grid()
+    plt.show()

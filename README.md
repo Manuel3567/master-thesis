@@ -1,3 +1,218 @@
+## 1. Clone the Repository
+```
+git clone https://github.com/Manuel3567/master-thesis.git
+cd master-thesis
+```
+## 2. Set up a python virtual environment
+```
+python -m venv .venv
+.venv\Scripts\activate
+```
+## 3. Install dependencies
+use the appropriate `requirements` file. For GPU support:
+```
+pip install -r requirements_gpu.txt
+```
+otherwise
+```
+pip install -r requirements.txt
+```
+## 4. Run
+```
+pip install -e .
+```
+## 5. Prepare the Data structure
+ensure the data below exists and is saved using this folder structure before calling the function below
+```
+project_root/
+├── data/
+│   ├── entsoe/               # Raw aggregated power data
+│   ├── netztransparenz/      # Detailed wind park data (supporting)
+│   └── opendatasoft/         # PLZ list of Germany (supporting)
+```
+entsoe (login required, "Actual Generation per Production Type (year, CSV)"): [2016](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2016+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2016+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2017](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2017+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2017+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2018](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2018+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2018+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2019](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2019+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2019+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2020](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2020+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2020+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2021](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2021+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2021+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2022](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2022+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2022+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2023](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2023+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2023+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2024](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2024+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2024+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2))
+
+Netztransparenz: [power data of wind parks](https://www.netztransparenz.de/xspproxy/api/staticfiles/ntp-relaunch/dokumente/erneuerbare%20energien%20und%20umlagen/eeg/eeg-abrechnungen/eeg-jahresabrechnungen/eeg-anlagenstammdaten/stammdaten_2023/50hertz_transmission_gmbh_eeg-zahlungen_anlagenstammdaten_2023.zip), [legend](https://www.netztransparenz.de/xspproxy/api/staticfiles/ntp-relaunch/dokumente/erneuerbare%20energien%20und%20umlagen/eeg/eeg-abrechnungen/eeg-jahresabrechnungen/eeg-anlagenstammdaten/anlagenstammdaten_legende.xlsx), [PLZ](https://public.opendatasoft.com/explore/dataset/georef-germany-postleitzahl/export/)
+
+
+netztransparenz > EEG stammdatenblatt brauch _ und darf keine Leerzeichen zwischen den Worten haben
+start, end dates müssen festgelegt werden
+wind speed data: 
+```
+from analysis.downloads import download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geographic_mean
+download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geographic_mean("2016-01-01", "2024-12-31", filepath)
+```
+The final data structure should look like this:
+```
+project_root/
+├── data/
+│   ├── entsoe/               # Raw aggregated power data
+│   ├── netztransparenz/      # Detailed wind park data (supporting)
+│   ├── open_meteo/           # Wind speed data
+│   └── opendatasoft/         # PLZ list of Germany (supporting)
+```
+## 6. Training: 
+Specify a root file. When models are run, a folder with the name of the model will be automatically created if not exist
+
+### 6.1 Baseline
+```
+from analysis.baseline_model import *
+run_baseline_model(id, output_file)
+```
+### 6.2 NGBoost
+```
+from analysis.ngboost import *
+from analysis.datasets import load_entsoe
+load_entsoe()
+evaluate_ngboost_model()
+```
+### 6.3 TabPFN
+```
+from analysis.tabpfn import *
+run_tabpfn(id, output_file)
+```
+### 7. Evaluate models
+### 7.1 Baseline
+```
+from analysis.baseline_model import *
+calculate_scores_baseline(id, output_file)
+```
+### 7.2 NGBoost
+```
+evaluation is included in evaluate_ngboost_model() 
+```
+### 7.3 TabPFN
+```
+from analysis.tabpfn import *
+calculate_scores_tabpfn(id, output_file)
+```
+### Output
+```
+├── output_file/
+│   ├── baseline/
+│   │   ├── experiment_1.pkl
+│   │   ├── ...
+│   │   ├── experiment_2.pkl
+│   │   └── quantiles/
+│   │       ├── experiment_results_1.pkl
+│   │       └── experiment_results_2.pkl
+│   │       └── ...
+│   ├── ngboost/
+│   │   └── full_year/
+│   │       ├── case1.xlsx
+│   │       ├── case2.xlsx
+│   │       ├── ...
+│   │       ├── Merged_sheet.xlsx
+│   │   └── q4_train/
+│   │       ├── case1.xlsx
+│   │       ├── case2.xlsx
+│   │       ├── ...
+│   │       ├── Merged_sheet.xlsx
+│   └── tabpfn/
+│       ├── experiment_1.pkl
+│       ├── experiment_2.pkl
+│       ├── ...
+│       └── quantiles/
+│           ├── experiment_results_1.pkl
+│           └── experiment_results_2.pkl
+│           └── ...
+
+```
+### Map of Experiment ID to training details
+## ID Map
+| Method   | ID   | Features                                        | Split               |
+|:---------|:-----|:------------------------------------------------|:--------------------|
+| Baseline | 1    | power, mean ws                                  | Q1 2022 / Q1 2023   |
+| Baseline | 23   | p_t-96                                          | Q1 2022 / Q1 2023   |
+| Baseline | 24   | p_t-96                                          | Q4 2022 / FY 2023   |
+| Baseline | 25   | 2 mean, power_t-96                              | Q4 2022 / FY 2023   |
+| Baseline | 26   | ws 10 loc 10m + 100, P_t-96                     | Q4 2022 / FY 2023   |
+| Baseline | 27   | 2 mean, ws 10 loc 10m + 100, P_t-96             | Q4 2022 / FY 2023   |
+| Baseline | 28   | 2 mean, ws 10 loc 10m + 100, P_t-96, time index | Q4 2022 / FY 2023   |
+| Baseline | 29   | 2 mean, ws 10 loc 10m + 100, P_t-96, time index | 2016-2022 / FY 2023 |
+| Baseline | 30   | 2 mean, ws 10 loc 10m + 100, P_t-96             | 2016-2022 / FY 2023 |
+| Baseline | 31   | ws 10 loc 10m + 100, P_t-96                     | 2016-2022 / FY 2023 |
+| Baseline | 32   | 2 mean, power_t-96                              | 2016-2022 / FY 2023 |
+| Baseline | 33   | p_t-96                                          | 2016-2022 / FY 2023 |
+
+
+Same ID but for 2016-2022 split
+| Method   | ID  | Features                                                                                    | Split               |
+|:---------|:----|:--------------------------------------------------------------------------------------------|:--------------------|
+| NGBoost  | 1   | p_t-96, Loss function = CRPScore                                                           | Q4 2022 / FY 2023   |
+| NGBoost  | 2   | p_t-96, Loss function = LogScore                                                           | Q4 2022 / FY 2023   |
+| NGBoost  | 3   | 2 mean ws, Loss function = CRPScore                                                        | Q4 2022 / FY 2023   |
+| NGBoost  | 4   | 2 mean ws, Loss function = LogScore                                                        | Q4 2022 / FY 2023   |
+| NGBoost  | 5   | 2 mean, power_t-96, Loss function = CRPScore                                               | Q4 2022 / FY 2023   |
+| NGBoost  | 6   | 2 mean, power_t-96, Loss function = LogScore                                               | Q4 2022 / FY 2023   |
+| NGBoost  | 7   | ws 10 loc 10m + 100, P_t-96, Loss function = CRPScore                                      | Q4 2022 / FY 2023   |
+| NGBoost  | 8   | ws 10 loc 10m + 100, P_t-96, Loss function = LogScore                                      | Q4 2022 / FY 2023   |
+| NGBoost  | 9   | 2 mean, ws 10 loc 10m + 100, P_t-96, Loss function = CRPScore                              | Q4 2022 / FY 2023   |
+| NGBoost  | 10  | 2 mean, ws 10 loc 10m + 100, P_t-96, Loss function = LogScore                              | Q4 2022 / FY 2023   |
+| NGBoost  | 11  | 2 mean, ws 10 loc 10m + 100, P_t-96, time index, Loss function = CRPScore                  | Q4 2022 / FY 2023   |
+| NGBoost  | 12  | 2 mean, ws 10 loc 10m + 100, P_t-96, time index, Loss function = LogScore                  | Q4 2022 / FY 2023   |
+| NGBoost  | 13  | P_t-96, time index, Loss function = CRPScore                                               | Q4 2022 / FY 2023   |
+| NGBoost  | 14  | P_t-96, time index, Loss function = LogScore                                               | Q4 2022 / FY 2023   |
+| NGBoost  | 15  | 2 mean, time index, Loss function = CRPScore                                               | Q4 2022 / FY 2023   |
+| NGBoost  | 16  | 2 mean, time index, Loss function = LogScore                                               | Q4 2022 / FY 2023   |
+
+TabPFN
+| ID  | Features                   | Split                                  |
+|-----|----------------------------|----------------------------------------|
+| 1   | P(t-96), 2 mean ws         | Q1 2022 / Q1 2023                       |
+| 2   | P(t-96), 2 mean ws         | Q2 2022 / Q2 2023                       |
+| 3   | P(t-96), 2 mean ws         | Q3 2022 / Q3 2023                       |
+| 4   | P(t-96), 2 mean ws         | Q4 2022 / Q4 2023                       |
+| 5   | P(t-96), 2 mean ws         | Q4 2022 / Q1 2023                       |
+| 6   | P(t-96), 2 mean ws         | Q4 2022 / Q2 2023                       |
+| 7   | P(t-96), 2 mean ws         | Q4 2022 / Q3 2023                       |
+| 8   | P(t-96), 10 ws             | Q4 2022 / H1 2023                       |
+| 9   | P(t-96), 10 ws             | Q4 2022 / H2 2023                       |
+| 10  | P(t-96), 2 mean+10 ws      | Q4 2022 / H1 2023                       |
+| 11  | P(t-96), 2 mean+10 ws      | Q4 2022 / H2 2023                       |
+| 12  | (all)                      | Q4 2022 / H1 2023                       |
+| 13  | (all)                      | Q4 2022 / H2 2023                       |
+| 14  | P(t-96), 2 mean ws         | Q1 2022 / Q2 2023                       |
+| 15  | P(t-96), 2 mean ws         | Q3 2022 / Q2 2023                       |
+| 16  | P(t-96), 2 mean ws         | Q1 2022 / Q4 2023                       |
+| 17  | P(t-96), 2 mean ws         | Q1 2022 / Q3 2023                       |
+| 18  | P(t-96), 2 mean ws         | Q2 2022 / Q1 2023                       |
+| 19  | P(t-96), 2 mean ws         | 2022.08.01 – 2022.12.31 / FY 2023       |
+| 20  | P(t-96), 2 mean ws         | Q2 2022 / Q4 2023                       |
+| 21  | P(t-96), 2 mean ws         | Q3 2022 / Q1 2023                       |
+| 22  | P(t-96), 2 mean ws         | Q3 2022 / Q4 2023                       |
+| 34  | P(t-96), 2 mean ws         | 2022-09-01 - 2022-12-31 / Q1 2023       |
+| 35  | P(t-96), 2 mean ws         | 2022-08-01 - 2022-12-31 / Q1 2023       |
+| 36  | P(t-96), 2 mean ws         | H2 2022 / Q1 2023                       |
+| 37  | P(t-96), 2 mean ws         | FY 2022 / Q1 2023                       |
+| 38  | power, all ws, time bin    | FY 2022 / Q1 2023                       |
+| 39  | power, all ws, time bin    | FY 2022 / Q2 2023                       |
+| 40  | power, all ws, time bin    | FY 2022 / Q3 2023                       |
+| 41  | power, all ws, time bin    | FY 2022 / Q4 2023                       |
+| 42  | power, mean ws             | FY 2022 / Q1 2023                       |
+| 43  | power, mean ws             | FY 2022 / Q2 2023                       |
+| 44  | power, mean ws             | FY 2022 / Q3 2023                       |
+| 45  | power, mean ws             | FY 2022 / Q4 2023                       |
+| 46  | power, ws at 10 loc        | FY 2022 / Q1 2023                       |
+| 47  | power, ws at 10 loc        | FY 2022 / Q2 2023                       |
+| 48  | power, ws at 10 loc        | FY 2022 / Q3 2023                       |
+| 49  | power, ws at 10 loc        | FY 2022 / Q4 2023                       |
+| 50  | power, all ws              | FY 2022 / Q1 2023                       |
+| 51  | power, all ws              | FY 2022 / Q2 2023                       |
+| 52  | power, all ws              | FY 2022 / Q3 2023                       |
+| 53  | power, all ws              | FY 2022 / Q4 2023                       |
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------
 run ``pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126`` and then install requirements_gpu for gpu version
 
 

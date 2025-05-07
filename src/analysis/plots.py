@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from scipy.stats import weibull_min
 from scipy.special import gamma
 import scipy.stats as stats
@@ -222,12 +222,12 @@ def plot_installed_capacity_scatter(aggregated_df):
     plt.axvline(weighted_longitude, color='blue', linestyle='--', label='Total Weighted Average Longitude')
 
     # Highlight the current mean
-    plt.scatter(13.125, 53.00, color='red', s=100, label='Current Mean (13.125, 53.00)', zorder=5, marker='x')
+    #plt.scatter(13.125, 53.00, color='red', s=100, label='Current Mean (13.125, 53.00)', zorder=5, marker='x')
 
     # Add labels, title, and legend
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
-    plt.title('Scatter Plot of Installed Capacity')
+    plt.xlabel('Longitude [°]')
+    plt.ylabel('Latitude [°]')
+    plt.title('Location of 50Hertz Wind Parks by installed capacity')
     plt.legend()
 
     # Show the plot

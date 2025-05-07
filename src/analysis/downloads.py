@@ -40,7 +40,7 @@ from pathlib import Path
 
 def download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geographic_mean(start_date="2016-01-01", end_date="2024-12-31", data_path='../data'):
 
-    output_dir = Path(data_path) / 'open_meteo/historical'
+    output_dir = Path(data_path)/'open_meteo/historical'
     
     latitudes, longitudes = _get_coordinates_of_geographic_mean_and_10_biggest_wind_turbines_by_installed_capacity()
     download_open_meteo_historical_wind_speeds(start_date, end_date, latitudes, longitudes, output_dir=output_dir, filename="top_10_biggest_wind_parks_50hertz.json")
