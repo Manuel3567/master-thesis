@@ -315,9 +315,10 @@ TabPFN
 
 ## Baseline
 
-The results of the baseline model can be found in the jupyter notebook "notebooks/022_models.ipynb". 
-The values in the table indicate the Experiment ID with which the baseline model has to be run to reproduce table 5.1, 5.2
-
+The results of the baseline model can be found in the jupyter notebook "notebooks/022_models.ipynb".
+1. Markdown "Reproduce Figure 5.1" in 022 models gives the code to produce figure 5.1
+2. Markdown "Reproduce Table 5.1, 5.2" in 022 models gives the code to produce the entries of tables 5.1 and 5.2.
+The mapping of table entries to experiment ID is given in the table below:
 | Feature                | 2016–2022 Training, mean and quantiles | Q4 2022 Training, Mean
 |------------------------|----------------|--------------|
 | Power                  | 33             | 24           |
@@ -326,3 +327,63 @@ The values in the table indicate the Experiment ID with which the baseline model
 | Power, all ws          | 30             | 27           |
 | Power, all ws, t-bin   | 29             | 28           |
 
+## NGBoost
+The results can be obtained by reading the excel files.
+Easier is to use the python code in the jupyter notebook "notebooks/022_models.ipynb". Be careful to change the `pkl_file_path`
+
+1. Markdown "Reproduce Figure 5.7" in 022 models gives the code to produce figure 5.7
+2. Markdown "Reproduce Figure 5.8" in 022 models gives the code to produce figure 5.8
+3. Markdown "Reproduce Tables 5.7" in 022 models gives the code to produce Tables 5.7
+The following mapping table between experiment ID and table entries has been used
+
+| Loss Function         | NLL | CRPS |
+|-----------------------|-----|------|
+| **Features**          |     |      |
+| Power                 | 2   | 1    |
+| Power, mean ws        | 6   | 5    |
+| Power, ws at 10 loc   | 8   | 7    |
+| Power, all ws         | 10  | 9    |
+| Power, all ws, t-bin  | 12  | 11   |
+
+4. Markdown "Reproduce Tables 5.8, 5.9" in 022 models gives the code to produce Tables 5.8, 5.9
+
+| Feature                | 2016–2022 Training, mean and quantiles | Q4 2022 Training, Mean
+|------------------------|----------------|--------------|
+| Power                  | 2              | 2            |
+| Power, mean ws         | 6              | 6            |
+| Power, ws at 10 loc    | 8              | 8            |
+| Power, all ws          | 10             | 10           |
+| Power, all ws, t-bin   | 12             | 12           |
+
+
+## TabPFN
+1. Markdown "reproduce table 5.3" in the same notebook produces table 5.3
+2. Table 5.4 can be reproduced by running "calculate_scores_tabpfn" with the following ids:
+Mean is to be calculated by averaging across rows
+
+| Score | 23Q1 | 23Q2 | 23Q3 | 23Q4 | Mean |
+|-------|------|------|------|------|------|
+| 22Q1  | 1    | 14   | 17   | 16   |      |
+| 22Q2  | 18   | 2    | 19   | 20   |      |
+| 22Q3  | 21   | 15   | 3    | 22   |      |
+| 22Q4  | 5    | 6    | 7    | 4    |      |
+
+3. Table 5.5, 5.6 can be reproduced by running "calculate_scores_tabpfn" with the following ids:
+
+
+| Feature                  | 2022 (Mean, 5%, 25%, 75%, 95%) | Q4 2022 Mean |
+|--------------------------|-------------------------------|---------------|
+| Power                    | 54, 55, 56, 57                | 58, 59        |
+| Power, mean ws           | 42, 43, 44, 45                | 4, 5, 6, 7     |
+| Power, ws at 10 loc      | 46, 47, 48, 49                | 8, 9           |
+| Power, all ws            | 50, 51, 52, 53                | 10, 11         |
+| Power, all ws, t-bin     | 38, 39, 40, 41                | 12, 13         |
+
+4. Markdown "Reproduce Figure 5.5" in 022 models gives the code to produce figure 5.5
+
+5. Markdown "# Reproduce figure 5.6" in 022 models gives the code to produce figure 5.6
+
+6. The CDF and PDF figures in figure 5.2 - 5.4 can be found in the same notebook under the markdowns "reproduce pdf/cdf". Note the user can specify the sample (0,500) and whether the figure should be stored
+
+## Summary tables and figures
+Can be obtained by the individual results of the methods.
