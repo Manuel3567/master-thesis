@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import pickle
 from collections import defaultdict
-from analysis.tabpfn import *
+from analysis.TabPFN import *
 from analysis.baseline_model import *
 from analysis.ngboost import *
 from analysis.experiment_mapper import *
@@ -198,7 +198,7 @@ import glob
 import re
 import pickle
 import pandas as pd
-from analysis.tabpfn import ExperimentMapper
+from analysis.TabPFN import ExperimentMapper
 
 def analyze_3(method="tabpfn", file_path="C:/Users/Minu/Documents"):
 
