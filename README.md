@@ -309,3 +309,20 @@ TabPFN
 | 57  | power                      | FY 2022 / Q4 2023                       |
 | 58  | power                      | Q4 2022 / H1 2023                       |
 | 59  | power                      | Q4 2022 / H2 2023                       |
+
+
+# Reproducability
+
+## Baseline
+
+The results of the baseline model can be found in the jupyter notebook "notebooks/022_models.ipynb". 
+The values in the table indicate the Experiment ID with which the baseline model has to be run to reproduce table 5.1, 5.2
+
+| Feature                | 2016–2022 Training, mean and quantiles | Q4 2022 Training, Mean
+|------------------------|----------------|--------------|
+| Power                  | 33             | 24           |
+| Power, mean ws         | 32             | 25           |
+| Power, ws at 10 loc    | 31             | 26           |
+| Power, all ws          | 30             | 27           |
+| Power, all ws, t-bin   | 29             | 28           |
+
