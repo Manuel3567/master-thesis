@@ -24,22 +24,29 @@ pip install -e .
 ```
 # Prepare the data structure
 4 data sources are used:
+Sources 1. to 3. are downloaded manually by clicking on links that are provided below. The files then have to be saved in a specific directory format (details see below).
+Source 4. is downloaded by running the code below in a jupyter notebook.
+
 ### 1. `entsoe`: `2016-2024`
 ### 2. `netztransparenz`: `EEG`, `legend`
 ### 3. `opendatasoft`: `PLZ`
 ### 4. `open_meteo`
-
-They need to be sourced in this order and be saved using the following folder structure
+The data sources need to be downloaded in a data folder in the following order:
+1. entsoe
+2. netztransparenz
+3. opendatasoft
+4. open meteo
 ```
 project_root/
 ├── data/
 │   ├── entsoe/               # Raw aggregated wind power data
 │   ├── netztransparenz/      # wind power data of wind park data 
 │   └── opendatasoft/         # PLZ list of Germany
+|   └── open_meteo/           # Wind speed data
 ```
 ### 1. `entsoe`: `2016-2024` (LOGIN REQUIRED)
 - login > Export Data > "Actual Generation per Production Type (year, CSV)"
-    - downloads: [2016](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2016+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2016+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2017](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2017+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2017+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2018](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2018+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2018+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2019](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2019+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2019+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2020](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2020+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2020+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2021](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2021+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2021+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2022](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2022+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2022+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2023](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2023+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2023+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)), [2024](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2024+00:00|CET|DAYTIMERANGE&dateTime.endDateTime=01.01.2024+00:00|CET|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2))
+    - downloads: [2016](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2016+00:00|UTC|DAYTIMERANGE&dateTime.endDateTime=01.01.2016+00:00|UTC|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=UTC&dateTime.timezone_input=UTC), [2017](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2017+00:00|UTC|DAYTIMERANGE&dateTime.endDateTime=01.01.2017+00:00|UTC|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=UTC&dateTime.timezone_input=UTC), [2018](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2018+00:00|UTC|DAYTIMERANGE&dateTime.endDateTime=01.01.2018+00:00|UTC|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=UTC&dateTime.timezone_input=UTC), [2019](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2019+00:00|UTC|DAYTIMERANGE&dateTime.endDateTime=01.01.2019+00:00|UTC|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=UTC&dateTime.timezone_input=UTC), [2020](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2020+00:00|UTC|DAYTIMERANGE&dateTime.endDateTime=01.01.2020+00:00|UTC|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=UTC&dateTime.timezone_input=UTC), [2021](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2021+00:00|UTC|DAYTIMERANGE&dateTime.endDateTime=01.01.2021+00:00|UTC|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=UTC&dateTime.timezone_input=UTC), [2022](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2022+00:00|UTC|DAYTIMERANGE&dateTime.endDateTime=01.01.2022+00:00|UTC|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=UTC&dateTime.timezone_input=UTC), [2023](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2023+00:00|UTC|DAYTIMERANGE&dateTime.endDateTime=01.01.2023+00:00|UTC|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=UTC&dateTime.timezone_input=UTC), [2024](https://transparency.entsoe.eu/generation/r2/actualGenerationPerProductionType/show?name=&defaultValue=false&viewType=TABLE&areaType=CTA&atch=false&datepicker-day-offset-select-dv-date-from_input=D&dateTime.dateTime=01.01.2024+00:00|UTC|DAYTIMERANGE&dateTime.endDateTime=01.01.2024+00:00|UTC|DAYTIMERANGE&area.values=CTY|10Y1001A1001A83F!CTA|10YDE-VE-------2&productionType.values=B18&productionType.values=B19&dateTime.timezone=UTC&dateTime.timezone_input=UTC)
 
 ### 2. `Netztransparenz`:
 - download [EEG (!make sure that underscores are used as separators instead of spaces in the file name)](https://www.netztransparenz.de/xspproxy/api/staticfiles/ntp-relaunch/dokumente/erneuerbare%20energien%20und%20umlagen/eeg/eeg-abrechnungen/eeg-jahresabrechnungen/eeg-anlagenstammdaten/stammdaten_2023/50hertz_transmission_gmbh_eeg-zahlungen_anlagenstammdaten_2023.zip)
@@ -51,10 +58,10 @@ project_root/
 
 ### 4. `open_meteo`
 - (start, end dates have to be set):
-- run this code 
+- run this code in a new jupyter notebook
     ```
     from analysis.downloads import download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geographic_mean
-    download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geographic_mean("2016-01-01", "2024-12-31", filepath)
+    download_open_meteo_wind_speeds_of_10_biggest_wind_park_locations_and_at_geographic_mean("2016-01-01", "2024-12-31")
     ```
 ### The final data structure should look like this:
 ```
@@ -68,25 +75,30 @@ project_root/
 │   ├── netztransparenz/      
 │   │   ├── 50Hertz_Transmission_GmbH_EEG-Zahlungen_Stammdaten_2023.csv
 │   │   └── anlagenstammdaten_legende.xslx
-│   ├── open_meteo/           
-│   │   └── top_10_biggest_wind_parks_50hertz.json
+│   ├── open_meteo/          
+│   │   └── historical/
+|   |       └── top_10_biggest_wind_parks_50hertz.json
 │   └── opendatasoft/         
 │       └── georef-germany-postleitzahl.csv
 ```
 # Train models
-Specify a root directory. When models are run, a folder with the name of the model will be automatically created if not exist
+Specify (create) a root directory: replace `output_dir` with your own directory. For each of the three models, a new folder with the name of the model will be automatically created if it does not yet exist.
 
 ### 5.1 Baseline
+Run in a Jupyter notebook
 ```
+output_dir = "C:\Users\Manuel\Documents\results"
 id=1
 from analysis.baseline_model import *
-run_baseline_model(id, output_file)
+run_baseline_model(id, output_dir)
 ```
+The output of this is in "C:\Users\Manuel\Documents\results\baseline_model"
 ### 5.2 NGBoost
+Run in a Jupyter notebook
 ```
 from analysis.ngboost import *
 from analysis.datasets import load_entsoe
-
+output_dir = "C:\Users\Manuel\Documents\results"
 entsoe = load_entsoe()
 
 evaluate_ngboost_model(
@@ -97,7 +109,7 @@ evaluate_ngboost_model(
     n_estimators=100, 
     learning_rate=0.03, 
     random_state=42, 
-    output_file=output_file,
+    output_file=output_dir,
     train_start = "2016-01-01",
     train_end = "2022-12-31",
     validation_start = "2023-01-01",
@@ -107,15 +119,17 @@ evaluate_ngboost_model(
 ### 5.3 TabPFN
 ```
 id=1
-from analysis.tabpfn import *
-run_tabpfn(id, output_file)
+output_dir = "C:\Users\Manuel\Documents\results"
+from analysis.TabPFN import *
+run_tabpfn(id, output_dir)
 ```
 # Evaluate models
 ### 6.1 Baseline
 ```
 id=1
+output_dir = "C:\Users\Manuel\Documents\results"
 from analysis.baseline_model import *
-calculate_scores_baseline(id, output_file)
+calculate_scores_baseline(id, output_dir)
 ```
 ### 6.2 NGBoost
 ```
@@ -124,12 +138,13 @@ evaluation is included in evaluate_ngboost_model()
 ### 6.3 TabPFN
 ```
 id=1
+output_dir = "C:\Users\Manuel\Documents\results"
 from analysis.tabpfn import *
-calculate_scores_tabpfn(id, output_file)
+calculate_scores_tabpfn(id, output_dir)
 ```
 ### Output
 ```
-├── output_file/
+├── output_dir/
 │   ├── baseline/
 │   │   ├── experiment_1.pkl
 │   │   ├── ...
@@ -288,3 +303,9 @@ TabPFN
 | 51  | power, all ws              | FY 2022 / Q2 2023                       |
 | 52  | power, all ws              | FY 2022 / Q3 2023                       |
 | 53  | power, all ws              | FY 2022 / Q4 2023                       |
+| 54  | power                      | FY 2022 / Q1 2023                       |
+| 55  | power                      | FY 2022 / Q2 2023                       |
+| 56  | power                      | FY 2022 / Q3 2023                       |
+| 57  | power                      | FY 2022 / Q4 2023                       |
+| 58  | power                      | Q4 2022 / H1 2023                       |
+| 59  | power                      | Q4 2022 / H2 2023                       |
