@@ -319,6 +319,7 @@ The results of the baseline model can be found in the jupyter notebook "notebook
 1. Markdown "Reproduce Figure 5.1" in 022 models gives the code to produce figure 5.1
 2. Markdown "Reproduce Table 5.1, 5.2" in 022 models gives the code to produce the entries of tables 5.1 and 5.2.
 The mapping of table entries to experiment ID is given in the table below:
+
 | Feature                | 2016–2022 Training, mean and quantiles | Q4 2022 Training, Mean
 |------------------------|----------------|--------------|
 | Power                  | 33             | 24           |
@@ -386,4 +387,4 @@ Mean is to be calculated by averaging across rows
 6. The CDF and PDF figures in figure 5.2 - 5.4 can be found in the same notebook under the markdowns "reproduce pdf/cdf". Note the user can specify the sample (0,500) and whether the figure should be stored
 
 ## Summary tables and figures
-Can be obtained by the individual results of the methods.
+Can be obtained by the individual model results.
