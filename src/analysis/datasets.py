@@ -43,43 +43,91 @@ def load_entsoe_raw(data_path: str = "../data"):
 
 
 def _load_entsoe_raw(file: Path):
+    import pandas as pd
+    from io import StringIO
+
     cleaned_lines = []
-    
-    with open(file, "r") as f:
+
+    with open(file, "r", encoding="utf-8-sig") as f:
         for line in f:
+            # Fix known header problem
             wrong_header = '"Area,""MTU"",""Wind Offshore - Actual Aggregated [MW]"",""Wind Onshore - Actual Aggregated [MW]"""\n'
             correct_header = '"Area","MTU","Wind Offshore  - Actual Aggregated [MW]","Wind Onshore  - Actual Aggregated [MW]"\n'
-            # Fix the first column's missing quote
+
             if line == wrong_header:
                 line = correct_header
-            
-            line = line.replace("CTA|DE(50Hertz),", 'CTA|DE(50Hertz)",', 1)  # Add missing quote to rows
+
+            line = line.replace("CTA|DE(50Hertz),", 'CTA|DE(50Hertz)",', 1)
             line = line.replace('"""', '"')
             line = line.replace('""', '"')
 
-
-            # Append cleaned line
             cleaned_lines.append(line)
-    
-    # Write the cleaned data to a temporary buffer
-    from io import StringIO
+
+    # Read cleaned content into a DataFrame
     cleaned_csv = StringIO("".join(cleaned_lines))
+    df = pd.read_csv(cleaned_csv, sep=",", quotechar='"')
     
-    # Load the cleaned CSV into a DataFrame
-    df = pd.read_csv(cleaned_csv, delimiter=",", quotechar='"')
-    df.columns = [col.strip() for col in df.columns]  # Normalize column names
+
+    # Standard cleanup
+    df.columns = [col.strip() for col in df.columns]
     df = df.drop(columns="Area")
     df = df.rename(columns={
-        "Wind Offshore  - Actual Aggregated [MW]": "offshore", 
-        "Wind Onshore  - Actual Aggregated [MW]": "onshore",
+        #"Wind Offshore  - Actual Aggregated [MW]": "offshore",
+        "Wind Offshore - Actual Aggregated [MW]": "offshore",
+        #"Wind Onshore  - Actual Aggregated [MW]": "onshore",
+        "Wind Onshore - Actual Aggregated [MW]": "onshore",
         "MTU": "time"
-        })
+    })
+
+    display(df)
+    
     df["offshore"] = df.offshore.replace("-", None).astype("float")
     df["onshore"] = df.onshore.replace("-", None).astype("float")
     df["time"] = pd.to_datetime(df.time.str.split(" -").str[0], dayfirst=True)
     df = df.set_index("time")
 
     return df
+
+
+
+# def _load_entsoe_raw(file: Path):
+#     cleaned_lines = []
+    
+#     with open(file, "r") as f:
+#         for line in f:
+#             wrong_header = '"Area,""MTU"",""Wind Offshore - Actual Aggregated [MW]"",""Wind Onshore - Actual Aggregated [MW]"""\n'
+#             correct_header = '"Area","MTU","Wind Offshore  - Actual Aggregated [MW]","Wind Onshore  - Actual Aggregated [MW]"\n'
+#             # Fix the first column's missing quote
+#             if line == wrong_header:
+#                 line = correct_header
+            
+#             line = line.replace("CTA|DE(50Hertz),", 'CTA|DE(50Hertz)",', 1)  # Add missing quote to rows
+#             line = line.replace('"""', '"')
+#             line = line.replace('""', '"')
+
+
+#             # Append cleaned line
+#             cleaned_lines.append(line)
+    
+#     # Write the cleaned data to a temporary buffer
+#     from io import StringIO
+#     cleaned_csv = StringIO("".join(cleaned_lines))
+    
+#     # Load the cleaned CSV into a DataFrame
+#     df = pd.read_csv(cleaned_csv, delimiter=",", quotechar='"')
+#     df.columns = [col.strip() for col in df.columns]  # Normalize column names
+#     df = df.drop(columns="Area")
+#     df = df.rename(columns={
+#         "Wind Offshore  - Actual Aggregated [MW]": "offshore", 
+#         "Wind Onshore  - Actual Aggregated [MW]": "onshore",
+#         "MTU": "time"
+#         })
+#     df["offshore"] = df.offshore.replace("-", None).astype("float")
+#     df["onshore"] = df.onshore.replace("-", None).astype("float")
+#     df["time"] = pd.to_datetime(df.time.str.split(" -").str[0], dayfirst=True)
+#     df = df.set_index("time")
+
+#     return df
 
 
 
