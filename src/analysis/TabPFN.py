@@ -1054,12 +1054,22 @@ class Visualization:
 
         
         elif case == 1:
-            plt.plot(x_values, cdf_linear, label="Linear Interpolation", linewidth=1)
-            plt.plot(x_values, cdf_pchip, label="PCHIP Interpolation", linewidth=1)
-            plt.plot(x_values, cdf_hybrid, label="Hybrid Interpolation", linewidth=1)
-            plt.plot(bin_x, cdf_normal, linewidth=1, label=f"Normal CDF")
+            #plt.plot(x_values, cdf_linear, label="Linear Interpolation", linewidth=1)
+            plt.plot(x_values, cdf_linear, label="Decile linear", linewidth=1, color="blue")
+
+            #plt.plot(x_values, cdf_pchip, label="PCHIP Interpolation", linewidth=1)
+            plt.plot(x_values, cdf_pchip, label="Decile pchip", linewidth=1, color="#FF8C00")
+
+            #plt.plot(bin_x, cdf_normal, linewidth=1, label=f"Normal CDF")
+            plt.plot(bin_x, cdf_normal, linewidth=1, label=f"Decile normal", color="red")
+
+            #plt.plot(x_values, cdf_hybrid, label="Hybrid Interpolation", linewidth=1)
+            plt.plot(x_values, cdf_hybrid, label="Decile hybrid", linewidth=1, color="green")
+
             x_step_cdf, cdf_step = make_step_cdf_data(raw_cdf, dist.borders)
-            plt.plot(x_step_cdf, cdf_step, drawstyle="steps-post", linestyle="solid", linewidth=1, label="Raw CDF (step)")
+            #plt.plot(x_step_cdf, cdf_step, drawstyle="steps-post", linestyle="solid", linewidth=1, label="Raw CDF (step)")
+            plt.plot(x_step_cdf, cdf_step, drawstyle="steps-post", linestyle="solid", linewidth=1, label="Stepwise bin", color="purple")
+
             plt.title(f"CDF Comparison for Sample {id} - {title} (Log Scale)")
             plt.yscale("log")
             plt.xlabel("Value")
