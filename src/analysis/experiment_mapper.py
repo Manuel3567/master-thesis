@@ -621,6 +621,72 @@ class ExperimentMapper:
                 "random_state": 42
                 }
             ]
+        elif experiment_id == 54:
+            config = [
+                {
+                "selected_features": ["power_t-96"],
+                "train_start": "2022-01-01",
+                "train_end": "2022-12-31",
+                "val_start": "2023-01-01",
+                "val_end": "2023-03-31",
+                "random_state": 42
+                }
+            ]
+        elif experiment_id == 55:
+            config = [
+                {
+                "selected_features": ["power_t-96"],
+                "train_start": "2022-01-01",
+                "train_end": "2022-12-31",
+                "val_start": "2023-04-01",
+                "val_end": "2023-06-30",
+                "random_state": 42
+                }
+            ]
+        elif experiment_id == 56:
+            config = [
+                {
+                "selected_features": ["power_t-96"],
+                "train_start": "2022-01-01",
+                "train_end": "2022-12-31",
+                "val_start": "2023-07-01",
+                "val_end": "2023-09-30",
+                "random_state": 42
+                }
+            ]
+        elif experiment_id == 57:
+            config = [
+                {
+                "selected_features": ["power_t-96"],
+                "train_start": "2022-01-01",
+                "train_end": "2022-12-31",
+                "val_start": "2023-10-01",
+                "val_end": "2023-12-31",
+                "random_state": 42
+                }
+            ]
+        elif experiment_id == 58:
+            config = [
+                {
+                "selected_features": ["power_t-96"],
+                "train_start": "2022-10-01",
+                "train_end": "2022-12-31",
+                "val_start": "2023-01-01",
+                "val_end": "2023-06-30",
+                "random_state": 42
+                }
+            ]
+        elif experiment_id == 59:
+            config = [
+                {
+                "selected_features": ["power_t-96"],
+                "train_start": "2022-10-01",
+                "train_end": "2022-12-31",
+                "val_start": "2023-07-01",
+                "val_end": "2023-12-31",
+                "random_state": 42
+                }
+            ]
         else:
             raise ValueError(f"Experiment ID {experiment_id} is not valid.")
         
